@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/layout}">
+<th:block layout:fragment="content">
+	<div class="row">
+    <div class="col text-center mb-3 mt-3">
+      <h3 th:utext="${cate_name}"></h3>
+    </div>
+  </div>
+  <!-- <a href="주소?p1=값1&p2=값2&p3=값3"   링크의 파라미터값이 길어질 경우, <form>태그와 자바스크립트를 사용하면 로직작업이 가능 -->
+  <form id="frm_pro_info" method="get" action="/product/pro_info">
+    <input type="hidden" name="cate_name" id="cate_name">
+    <input type="hidden" name="pro_num" id="pro_num">
+  </form>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">        
+    <div class="col" th:each= "productVo:${pro_list}">
+      <div class="card shadow-sm">
+        <!--
+        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"></rect><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
+        -->
+        <!--
+        <a th:href="|/product/pro_info?pro_num=${productVo.pro_num}&cate_name=${cate_name}|">
+        -->
+        <a href="#" th:data-pro_num="${productVo.pro_num}" class="pro_info">
+          <img style="width: 100%;height: 225px;" th:src="${'/product/image_display?dateFolderName=' + productVo.pro_up_folder + '&fileName=s_' + productVo.pro_img}">
+        </a>
+        <div class="card-body">
+          <h5 th:text="${productVo.pro_name}"></h5>          
+          <span>[[${#numbers.formatInteger(productVo.pro_price, 3, 'COMMA') + '원'}]]</span>
+          <div class="mt-3">수량 <input type="number" value="1" name="cart_amount"></div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-secondary" name="btn_cart_add" th:data-pro_num="${productVo.pro_num}">Cart</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" name="btn_buy_add" th:data-pro_num="${productVo.pro_num}">Buy</button>
+            </div>
+            <small class="text-body-secondary">상품후기 [[${productVo.pro_review}]]</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+
+    $(document).ready(function() {
+
+      // 장바구니 클릭이벤트.  name="btn_cart_add"
+      $("button[name='btn_cart_add']").on("click", function() {
+        //console.log("장바구니 클릭");
+        // 선택한 cart버튼의 상품코드
+        let pro_num = $(this).data("pro_num");
+        // 선택한 cart버튼위치에서 수량태그의 값을 접근하는 문법.
+        let cart_amount = $(this).parents("div.card-body").find("input[name='cart_amount']").val();
+
+        //console.log("상품코드", pro_num);
+        //console.log("수량", cart_amount);
+
+        $.ajax({
+          url: '/cart/cart_add',
+          type: 'post',
+          data: {pro_num : pro_num, cart_amount : cart_amount},
+          dataType: 'text',
+          success: function(result) {
+            if(result == "success") {
+              alert("장바구니에 등록되었습니다.");
+              if(confirm("장바구니로 이동하시겠습니까?")) {
+                location.href = "/cart/cart_list";
+              }
+            }
+          },
+          beforeSend : function(xhr) {
+            xhr.setRequestHeader("AJAX", "true");
+          },
+          error: function(xhr, status, error) {  // 스프링에서 응답된 정보중에 에러코드가 존재하면
+            console.log(xhr);
+            alert("인증되지 않은 상태입니다. 로그인 페이지로 이동됩니다.");
+            location.href = "/member/login";
+          }
+        });
+      });
+
+      // <a href="">를 사용안하고 form태그를 이용하는 이유? 카테고리 이름에 &가 이슈가되어서
+      $("a.pro_info").on("click", function(e) {
+        e.preventDefault(); // 기본적인 링크기능 제거
+        let pro_num = $(this).data("pro_num");
+        // let cate_name = encodeURIComponent([[${cate_name}]]);
+        $("#pro_num").val(pro_num);
+        // "맨투맨&후드티" 의 & 가 원래는 구분자로 사용이되지만, 현재는 값으로 사용하기위하여 타임리프문법에서 자동처리.
+        $("#cate_name").val([[${cate_name}]]); 
+
+        // id="frm_pro_info"
+        let frm = $("#frm_pro_info");
+        frm.submit();
+
+      });
+
+      // 구매 클릭이벤트.  name="btn_buy_add"
+      /*
+      $("button[name='btn_buy_add']").on("click", function() {
+
+        // 선택한 cart버튼의 상품코드
+        let pro_num = $(this).data("pro_num");
+        // 선택한 cart버튼위치에서 수량태그의 값을 접근하는 문법.
+        let cart_amount = $(this).parents("div.card-body").find("input[name='cart_amount']").val();
+          // 상품코드(pro_num), 수량(cart_amount)
+        let url = `/order/order_info?pro_num=${pro_num}&cart_amount=${cart_amount}&type=buy`;
+
+          //console.log("url", url);
+        location.href = url;
+      });
+      */
+
+    });  // ready event end
+
+    document.querySelector("button[name='btn_buy_add']").addEventListener("click", function() {
+    // 선택한 cart 버튼의 상품코드
+    let pro_num = this.getAttribute("data-pro_num");
+
+    // 선택한 cart 버튼 위치에서 수량 태그의 값을 접근
+    let cart_amount = this.closest("div.card-body").querySelector("input[name='cart_amount']").value;
+
+    // 상품코드(pro_num), 수량(cart_amount)
+    let url = `/order/order_info?pro_num=${pro_num}&cart_amount=${cart_amount}&type=buy`;
+
+    // 페이지 이동
+    location.href = url;
+    });
+  </script>
+</th:block>
+</html>

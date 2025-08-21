@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kd.basic.Admin.AdminMapper">
+
+<!-- 회원등록 SQL -->
+<insert id="join"  parameterType="AdminLoginVO"> 
+<!--  1.<insert>: insert SQL을 구문을 정의 하는 태그
+	2. id: 호출할떄 사용하는 메서드명 (AdminLoginMapper.java에서 사용)	
+-->
+insert into admin_tbl(AD_USERID,AD_PASSWD,LOGIN_DATE) 
+values(#{AD_USERID},#{ad_password},#{LOGIN_DATE},NOW())
+</insert> 
+
+<!--로그인 검증 SQL  -->
+<select id="admin_ok" parameterType="String" resultType="com.kd.basic.admin.login.AdminLoginVO">
+<!-- 1.<select>:select SQL구문 정의  
+	2. parameterType : 입력값타입 (여기서는 String 이유는 아이디 문자열)	  
+    3.resultType:반환할 타입(AdminLoginVO)
+
+-->
+   
+     select  AD_USERID,AD_PASSWD,LOGIN_DATE from admin_tbl 
+     where AD_USERID = #{ad_userid}  
+     
+     <!--  1. WHERE : 조건절. 테이블 전체 데이터 중 필요한 행만 걸러냄.
+
+             2.#{} : MyBatis의 파라미터 바인딩 문법. 자바 코드에서 넘겨준 변수 값이 여기에 들어감.
+     
+     -->
+</select>
+

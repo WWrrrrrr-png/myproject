@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/layout}">
+<th:block layout:fragment="content">
+	<div class="row mt-5">
+		<div class="col-3">
+			
+			<th:block th:replace="~{member/mypage_menu::menu}"></th:block>
+			
+		</div>
+		<div class="col-9">
+      <div class="row">
+        <div class="col text-center mb-3 mt-3">
+          <h3>리뷰목록</h3>
+        </div>
+      </div>
+      <!-- 목록 -->
+			<div class="row">        
+        <div class="col">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 10%;">주문번호</th>
+                <th scope="col" style="width: 20%;">상품이미지</th>
+                <th scope="col" style="width: 15%;">상품이름</th>
+                <th scope="col" style="width: 15%;">비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each= "item : ${review_list}">
+                <td>
+                  [[${#temporals.format(item.ord_regdate, 'yyyy-MM-dd')}]] <br> [[${item.ord_code}]] 
+                </td>
+                <td>
+                  <a th:href="|/order/pro_preinfo?pro_num=${item['pro_num']}#tabs-2|">
+
+                  <img style="width: 100px;height: 100px;" th:src="${'/order/image_display?dateFolderName=' + item.pro_up_folder + '&fileName=s_' + item.pro_img}">
+                  </a>
+                </td>
+                <td>
+                  [[${item['pro_name']}]] <br>
+                  <span style="color: red;">[[${#temporals.format(item.delivery_date, 'yyyy-MM-dd')}]] 배송</span>
+                </td>
+                <td><button type="button" name="btn_review_write" th:data-pro_num="${item['pro_num']}" class="btn btn-outline-success">상품평쓰기</button></td>
+              </tr>
+            </tbody>        
+          </table>
+        </div>
+      </div>
+
+      <!-- 페이징 -->
+      <div class="row">
+        <div class="col">
+          <div class="card-footer clearfix">
+            <nav aria-label="Page navigation example">
+              <ul class="pagination">
+              <!-- 이전표시여부 Previous  pageMaker.getPrev() -->
+              <th:block th:if="${pageMaker.prev}">
+                <li class="page-item"><a class="page-link" th:href="|/order/review_manage${pageMaker.makeSearch(pageMaker.startPage - 1)}|">Previous</a></li>
+              </th:block>
+                <!--  페이지번호 출력.  1  2  3  4  5 -->
+                <th:block th:each="num : ${#numbers.sequence(pageMaker.startPage, pageMaker.endPage)}">
+                <li class="page-item" th:classappend="${pageMaker.cri.page == num ? 'active' : ''}">
+                  <a class="page-link" th:href="|/order/review_manage${pageMaker.makeSearch(num)}|" th:text="${num}"></a>
+                </li>        
+                </th:block>
+              
+              <!--  다음표시여부 Next -->
+              <th:block th:if="${pageMaker.next}">
+                <li class="page-item"><a class="page-link" th:href="|/order/review_manage${pageMaker.makeSearch(pageMaker.endPage + 1)}|">Next</a></li>
+              </th:block>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+		</div>
+	</div>	
+
+  <script>
+    $(document).ready(function() {
+      // name="btn_review_write"
+
+      // 상품평 이벤트
+      $("button[name='btn_review_write']").on("click", function() {
+        let pro_num = $(this).data("pro_num");
+
+        // console.log("상품코드", pro_num);
+
+        location.href = `/order/pro_preinfo?pro_num=${pro_num}#tabs-2`;
+      });
+    });
+
+  </script>
+</th:block>
+</html>

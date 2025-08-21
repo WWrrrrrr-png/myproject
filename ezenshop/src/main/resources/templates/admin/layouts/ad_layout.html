@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<th:block th:replace="~{admin/fragments/plugin_1}"></th:block>
+
+<!-- 상속받는 페이지에서 재정의 목적 -->
+<th:block layout:fragment="script"></th:block>
+<th:block layout:fragment="css"></th:block>
+
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+	<!-- Preloader -->
+	  <div class="preloader flex-column justify-content-center align-items-center">
+	    <img class="animation__shake" src="/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
+	  </div>
+	<!-- Navbar -->
+	<nav th:replace="~{admin/fragments/nav}"></nav>  
+	<!-- /.navbar -->
+	
+	<!-- Main Sidebar Container -->
+	<aside th:replace="~{admin/fragments/aside}"></aside>
+	
+	<!-- Content Wrapper. Contains page content -->
+	  <div class="content-wrapper">
+	    	
+	    <!-- Main content -->
+	    <section class="content">
+	      <!-- 상속받는 페이지에서 재정의 목적 -->
+	      <th:block layout:fragment="content">
+	      
+	      </th:block>
+	      
+	    </section>
+	    <!-- /.content -->
+	  </div>
+  <!-- /.content-wrapper -->
+  
+  <th:block th:replace="~{admin/fragments/footer}"></th:block>
+</div>
+<th:block th:replace="~{admin/fragments/plugin_2}"></th:block>
+<!-- 상속받는 페이지에서 재정의 목적 -->
+<th:block layout:fragment="script2"></th:block>
+</body>
+</html>

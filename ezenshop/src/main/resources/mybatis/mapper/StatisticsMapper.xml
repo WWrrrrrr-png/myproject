@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.admin.statistics.StatisticsMapper">
+
+	<select id="monthlysales_statistics" resultType="com.ezen.shop.admin.statistics.OrderAmount">
+	
+		SELECT 
+    		DATE_FORMAT(ORD_REGDATE, '%Y-%m') AS month,
+    		SUM(ORD_PRICE) AS amount
+		FROM 
+    		ORDER_TBL
+		where 
+			year(ORD_REGDATE) = #{year}
+		GROUP BY 
+    		DATE_FORMAT(ORD_REGDATE, '%Y-%m')
+		ORDER BY 
+    		month
+	
+	</select>
+
+	<select id="monthlysales_statistics2" resultType="hashmap">
+	
+		SELECT 
+    		DATE_FORMAT(ORD_REGDATE, '%Y-%m') AS month,
+    		SUM(ORD_PRICE) AS amount
+		FROM 
+    		ORDER_TBL
+		where 
+			year(ORD_REGDATE) = #{year}
+		GROUP BY 
+    		DATE_FORMAT(ORD_REGDATE, '%Y-%m')
+		ORDER BY 
+    		month
+	
+	</select>
+	
+	<select id="getDailyStatistics" resultType="hashmap">
+		
+		select 
+			date(ord_regdate) as date, sum(ord_price) as total_sales
+        from 
+        	order_tbl
+        where 
+        	DATE_FORMAT(ord_regdate, '%Y-%m') = #{date}
+        group by 
+        	date(ord_regdate)
+        order by 
+        	date asc
+        
+	</select>
+	
+	<select id="getHourlyStatistics" resultType="hashmap">
+	
+		<![CDATA[
+		select 
+			hour(ord_regdate) as hour, sum(ord_price) as total_sales
+        from 
+        	order_tbl
+        where 
+        	ord_regdate >= #{start_date} and ord_regdate < #{end_date}
+        group by 
+        	hour(ord_regdate)
+        order by 
+        	hour asc
+		]]>
+	</select>
+	
+	<select id="getWeeklyStatistics" resultType="hashmap">
+		<![CDATA[
+		select 
+			dayname(ord_regdate) as weekday, sum(ord_price) as total_sales
+        from 
+        	order_tbl
+        where 
+        	ord_regdate >= #{start_date} and ord_regdate < #{end_date}
+        group by 
+        	dayname(ord_regdate)
+        ORDER BY 
+        	FIELD(weekday, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+		]]>
+	</select>
+	
+	<select id="getMonthlyStatistics" resultType="hashmap">
+	
+		select 
+			month(ord_regdate) as month, sum(ord_price) as total_sales
+        from 
+        	order_tbl
+        where 
+        	year(ord_regdate) = #{year}
+        group by 
+        	month(ord_regdate)
+        order by 
+        	month asc
+	
+	
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+</mapper>

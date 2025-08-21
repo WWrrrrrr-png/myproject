@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.admin.AdminMapper">
+
+	<select id="admin_ok" resultType="com.ezen.shop.admin.AdminDto">
+	
+		select 
+			ad_userid, ad_passwd, login_date
+		from 
+			admin_tbl
+		where
+			ad_userid = #{ad_userid}
+	
+	</select>
+
+</mapper>

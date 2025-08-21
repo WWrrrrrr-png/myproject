@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kd.basic.admin.login.AdminLoginMapper">
+
+	<select id="admin_ok"  resultType="com.kd.basic.admin.login.AdminLoginDTO" parameterType="com.kd.basic.admin.login.AdminLoginDTO">
+	
+		select 
+			ad_userid, 
+			ad_passwd, 
+			login_date 
+		from 
+			admin_tbl
+		where 
+			ad_userid = #{ad_userid}
+	
+	</select>
+
+
+</mapper>

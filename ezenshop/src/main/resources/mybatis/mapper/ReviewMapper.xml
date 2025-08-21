@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.review.ReviewMapper">
+
+	<select id="rev_list_bak" resultType="hashmap" parameterType="map">
+	
+		select 
+			rt.rev_code, rt.mbsp_id, rt.pro_num, rt.rev_content, rt.rev_rate, rt.rev_date,
+			rrt.manager_id, rrt.reply_id, rrt.reply_text, rrt.reply_date 
+		from 
+			review_tbl rt 
+		left outer join 
+			review_replies_tbl rrt 
+		on 
+			rt.rev_code = rrt.rev_code
+		where 
+			pro_num = #{pro_num}
+		order by 
+			rt.rev_date desc
+		limit 
+			#{cri.pageStart}, #{cri.perPageNum}
+	
+	</select>
+	
+	<select id="rev_list" resultMap="ReviewResultMap">
+        select 
+			rt.rev_code, rt.mbsp_id, rt.pro_num, rt.rev_content, rt.rev_rate, rt.rev_date,
+			rrt.rev_code, rrt.manager_id, rrt.reply_id, rrt.reply_text, rrt.reply_date 
+		from 
+			review_tbl rt 
+		left outer join 
+			review_replies_tbl rrt 
+		on 
+			rt.rev_code = rrt.rev_code
+		where 
+			pro_num = #{pro_num}
+        order by 
+			rt.rev_date desc, rrt.reply_date asc
+		limit 
+			#{cri.pageStart}, #{cri.perPageNum}
+    </select>
+	
+	<!-- 결과를 매핑작업.(출력형식)    -->
+	<resultMap id="ReviewResultMap" type="com.ezen.shop.review.ReviewVO">
+        <id property="rev_code" column="rev_code"/> <!-- pk -->
+        <result property="mbsp_id" column="mbsp_id"/>
+        <result property="pro_num" column="pro_num"/>
+        <result property="rev_content" column="rev_content"/>
+        <result property="rev_rate" column="rev_rate"/>
+        <result property="rev_date" column="rev_date"/>
+        <collection property="replies" ofType="com.ezen.shop.review.ReviewReply">
+            <id property="reply_id" column="reply_id"/>  <!--  pk -->
+            
+            <!--  fk 중복작업하면 안된다. -->
+            <!--  <result property="rev_code" column="rev_code"/>  -->
+            
+            <result property="manager_id" column="manager_id"/>
+            <result property="reply_text" column="reply_text"/>
+            <result property="reply_date" column="reply_date"/>
+        </collection>
+    </resultMap>
+	
+	<!-- left outer join을 사용하지 않아도, review_tbl테이블의 전체데이타 개수를 가져오는 의미가 같기때문. -->
+	<select id="getCountReviewByPro_num" resultType="int" parameterType="Integer">
+	
+		select 
+			count(*) 
+		from 
+			review_tbl
+		where 
+			pro_num = #{pro_num}
+	
+	</select>
+	
+	<insert id="review_save" parameterType="com.ezen.shop.review.ReviewVO">
+	
+		insert into 
+			review_tbl(mbsp_id,pro_num,rev_content,rev_rate)
+		values
+			(#{mbsp_id}, #{pro_num},#{rev_content},#{rev_rate})
+	
+	
+	</insert>
+	
+	<select id="review_info" resultType="com.ezen.shop.review.ReviewVO" parameterType="Long">
+	
+		select
+			rev_code, mbsp_id,pro_num,rev_content,rev_rate, rev_date
+		from 
+			review_tbl
+		where
+			rev_code = #{rev_code}
+	
+	</select>
+	
+	<update id="review_modify" parameterType="com.ezen.shop.review.ReviewVO">
+	
+		update
+			review_tbl
+		set
+			rev_rate = #{rev_rate}, rev_content = #{rev_content}, rev_date = now()
+		where
+			rev_code = #{rev_code}	
+	
+	</update>
+	
+	
+	<delete id="review_delete" parameterType="Long">
+	
+		delete from
+			review_tbl
+		where
+			rev_code = #{rev_code}
+			
+	</delete>
+	
+	<insert id="reply_insert">
+	
+		insert into 
+			review_replies_tbl(rev_code,manager_id,reply_text)
+		values(#{rev_code}, #{manager_id}, #{reply_text})
+	
+	</insert>
+	
+	
+	
+	
+	
+	
+
+</mapper>

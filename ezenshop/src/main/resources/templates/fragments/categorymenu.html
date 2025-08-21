@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="category">
+<ul class="nav justify-content-center" id="category_menu">
+  <li class="nav-item first_category" th:each= "menu : ${cate_list}">
+    <a class="nav-link active" aria-current="page" href="#" th:data-cate_code="${menu.cate_code}" th:text="${menu.cate_name}" >Active</a>
+  </li>
+</ul>
+<ul class="nav justify-content-center" id="subCategory_menu">
+
+</ul>
+<script>
+  $(document).ready(function() {
+
+    // 1차카테고리 클릭
+    $("ul#category_menu li.first_category").on("click", function() {
+      // console.log("1차카테고리 선택");
+      let current = $(this); // 1차카테고리 선택한 메뉴를 가리키는 의미.(li 태그)
+      let first_category = current.find("a.nav-link").data("cate_code");  // 클릭한 카테고리 코드참조
+
+      //console.log("선택한 1차코드", first_category);
+
+      $.ajax({
+        url : '/admin/category/secondcategory/' + first_category,
+        type: 'get',
+        dataType : 'json',
+        success : function(subCategoryList) {
+          //console.log(subCategoryList);
+          /*
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Active</a>
+          </li>
+          */
+          
+          $("ul#subCategory_menu").empty(); // 2차카테고리의 내용을 삭제.
+
+          // 새로 선택한 2차카테고리 내용이 추가
+          for(let i=0; i<subCategoryList.length; i++) {
+            let subCategoryStr = `<li class="nav-item">`;
+              subCategoryStr += `<a class="nav-link active" aria-current="page" href="#" data-cate_code="${subCategoryList[i].cate_code}">${subCategoryList[i].cate_name}</a>`;
+              subCategoryStr += `</li>`;
+              
+              $("ul#subCategory_menu").append(subCategoryStr);
+          }
+        }
+      });
+    });
+
+    // 2차카테고리 클릭
+    $("ul#subCategory_menu").on("click", "li.nav-item a.nav-link", function() {
+      //console.log("2차카테고리 클릭");
+      // <a class="nav-link active" aria-current="page" href="#" data-cate_code="5">맨투맨&amp;후드티</a>
+
+      let cate_name =  encodeURIComponent($(this).html()); // 2차카테고리 이름
+      let cate_code = $(this).data("cate_code"); // 2차카테고리 코드
+      // 상품리스트 주소로 이동(2차카테고리이름및코드)
+      location.href = `/product/pro_list?cate_name=${cate_name}&cate_code=${cate_code}`;
+    });
+
+
+  });  // ready event end
+</script>
+</th:block>
+</html>

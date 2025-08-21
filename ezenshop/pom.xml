@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.4.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ezen</groupId>
+	<artifactId>shop</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ezenshop</name>
+	<description>포트폴리오 데모</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		
+		<!-- mybatis 기능제공 : xml mapper파일에 sql구문사용-->
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter-test</artifactId>
+			<version>3.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- 스프링부트의 기본기능을 제공 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		
+		<!-- 코드 변경시 서버재시작해주는 기능 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- 롬복기능 -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- 단위테스트 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- 템플릿 엔진 : 타임리프 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		
+		<!-- 타임리프 레이아웃: thymeleaf-layout-dialect -->
+		<dependency>
+		    <groupId>nz.net.ultraq.thymeleaf</groupId>
+		    <artifactId>thymeleaf-layout-dialect</artifactId>
+		</dependency>
+		
+		<!--  HikariCP connection pool 지원. db연동 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-jdbc</artifactId>	    
+		</dependency>
+		
+		<!-- mysql 데이타베이스 드라이버 -->
+		<dependency>
+		    <groupId>com.mysql</groupId>
+		    <artifactId>mysql-connector-j</artifactId>		    
+		</dependency>
+		
+	   <!-- sql로그설정 log4jdbc -->
+	   <!-- 1)log4jdbc.log4j2.properties 2)logback-spring.xml 2개파일이 resources폴더에 존재.-->
+	   <!-- application.properties 파일에 연결정보를 설정해야 사용가능하다. -->
+		<dependency>
+		    <groupId>org.bgee.log4jdbc-log4j2</groupId>
+		    <artifactId>log4jdbc-log4j2-jdbc4.1</artifactId>
+		    <version>1.16</version>
+		</dependency> 
+		
+		<!-- mail기능 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>		    
+		</dependency>
+
+		<!-- 스프링부트 시큐리티 : 비밀번호 암호화기능만 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+		<!-- 썸네일기능 제공 -->
+		<dependency>
+		    <groupId>net.coobird</groupId>
+		    <artifactId>thumbnailator</artifactId>
+		    <version>0.4.20</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

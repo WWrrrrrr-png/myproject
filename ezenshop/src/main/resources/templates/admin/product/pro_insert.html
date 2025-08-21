@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/ad_layout}">
+
+	<th:block layout:fragment="script">
+		<script src="/ckeditor/ckeditor.js"></script>
+	</th:block>
+
+	<th:block layout:fragment="content">
+	      
+	  <div class="container mt-5">
+		<div class="row">
+			<div class="col">
+				<div class="card card-primary">
+					<div class="card-header">
+					  <h3 class="card-title">상품 등록</h3>
+					</div>
+					<!-- /.card-header -->
+					<!-- form start -->
+					<form action="/admin/product/pro_insert" method="post" enctype="multipart/form-data">
+					  <div class="card-body">
+						<div class="form-group">
+							<label>1차카테고리</label>
+							<select class="custom-select" name="cate_prt_code" id="btn_firstCategory">
+							  <option>1차카테고리 선택</option>						  
+							  <option th:each="category : ${cate_list}" th:value="${category.cate_code}" th:text="${category.cate_name}">option 2</option>							  
+							</select>
+							<label>2차카테고리</label>
+							<select class="custom-select" name="cate_code" id="btn_secondCategory">
+								<option>2차카테고리 선택</option>	
+							</select>
+						</div>
+						<div class="form-group">
+						  <label for="pro_name">상품명</label>
+						  <input type="text" class="form-control" id="pro_name" name="pro_name" placeholder="상품명 입력">
+						</div>
+						<div class="form-group">
+							<label for="pro_price">가격</label>
+							<input type="text" class="form-control" id="pro_price" name="pro_price" placeholder="가격 입력">
+						  </div>
+						  <div class="form-group">
+							<label for="pro_discount">할인율</label>
+							<input type="text" class="form-control" id="pro_discount" name="pro_discount" placeholder="할인율 입력">
+						  </div>
+						  <div class="form-group">
+							<label for="pro_publisher">제조사</label>
+							<input type="text" class="form-control" id="pro_publisher" name="pro_publisher" placeholder="제조사 입력">
+						  </div>
+						  <div class="form-group">
+							<label for="pro_content">상품설명</label>
+							<textarea class="form-control" id="pro_content" name="pro_content" placeholder="상품설명 입력"></textarea>
+						  </div>
+						  
+						<div class="form-group">
+						  <label for="pro_img">상품이미지</label>
+						  <div class="input-group">
+							<div class="custom-file">
+							  <input type="file" class="custom-file-input" id="pro_img_upload" name="pro_img_upload">
+							  <label class="custom-file-label" for="exampleInputFile">상품이미지파일 선택</label>
+							</div>
+							<div class="input-group-append">
+							  <span class="input-group-text">상품이미지</span>
+							</div>
+						  </div>					  
+						</div>
+						<div class="form-group">
+							<label>미리보기 이미지</label>
+							<img id="img_preview" style="width: 200px;height: 200px;">
+						</div>
+						<div class="form-group">
+							<label for="pro_amount">수량</label>
+							<input type="number" class="form-control" id="pro_amount" name="pro_amount" placeholder="수량 입력">
+						  </div>
+						<div class="form-group">
+						  <label for="exampleInputPassword1">판매여부</label>
+						  <div class="form-check">
+							<input class="form-check-input" type="radio" name="pro_buy" id="pro_buy1" value="Y" checked>
+							<label class="form-check-label mr-5" for="pro_buy1">
+							  판매함
+							</label>
+						    <input class="form-check-input" type="radio" name="pro_buy" id="pro_buy2" value="N">
+							<label class="form-check-label" for="pro_buy2">
+							  판매안함
+							</label>
+						  </div>
+						</div>
+					  </div>
+					  <!-- /.card-body -->
+	  
+					  <div class="card-footer">
+						<button type="submit" class="btn btn-primary">Submit</button>
+					  </div>
+					</form>
+				  </div>
+			</div>
+		</div>
+	  </div>
+	  <script>
+		// ckeditor 설정
+		var ckeditor_config = {
+	             resize_enabled : false,
+	             enterMode : CKEDITOR.ENTER_BR,
+	             shiftEnterMode : CKEDITOR.ENTER_P,
+	             toolbarCanCollapse : true,
+	             removePlugins : "elementspath", 
+	             //업로드 탭기능추가 속성. CKEditor에서 파일업로드해서 서버로 전송클릭하면 , 이 주소가 동작된다.
+	             filebrowserUploadUrl: '/admin/product/imageupload'
+	     }
+	
+		 // id="content" 인 textarea태그에 ckeditor_config변수가 가지고 있는 설정정보를 적용하겠다.
+		 CKEDITOR.replace("pro_content", ckeditor_config);
+
+	</script>
+	    
+	</th:block>
+
+	<th:block layout:fragment="script2">
+		<script>
+
+			$(document).ready(function() {
+	
+				// 1차 카테고리 클릭이벤트 등록.  id="btn_firstCategory"
+				$("#btn_firstCategory").on("change", function() {
+					
+					let firstCategoryCode = $("#btn_firstCategory").val();
+
+					// 2차카테고리 목록을 가져오는 스프링의 매핑주소
+					let url = "/admin/category/secondcategory/" + firstCategoryCode;
+
+					$.getJSON(url, function(secondCategoryList) {
+
+						// console.log("2차카테고리정보", secondCategoryList);
+
+						// 2차카테고리 select태그를 참조
+						let secondCategoryCode = $("#btn_secondCategory");
+
+						let optionStr = "";
+
+						for(let i=0; i<secondCategoryList.length; i++) {
+							optionStr += "<option value='" + secondCategoryList[i].cate_code + "'>" + secondCategoryList[i].cate_name + "</option>";
+						}
+
+						secondCategoryCode.find("option").remove();
+						secondCategoryCode.append("<option>2차카테고리 선택</option");
+						secondCategoryCode.append(optionStr);
+					});
+					
+				});
+
+				// 상품이미지 미리보기.   id="pro_img_upload".  e 매개변수 : 선택한 파일정보
+				$("#pro_img_upload").on("change", function(e) {
+					let file = e.target.files[0]; // 파일첨부에서 선택한 한개의 파일을 가리키는 의미.
+
+					let reader = new FileReader(); // 파일 읽어오는 입력객체.
+					reader.readAsDataURL(file);
+
+					reader.onload = function(e) {
+						$("#img_preview").attr("src", e.target.result);
+					}
+
+				});
+	
+			});
+	
+		</script>
+
+	</th:block>
+</html>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.member.MemberMapper">
+
+	<select id="idCheck" parameterType="String" resultType="String">
+	
+		select 
+			mbsp_id 
+		from 
+			mbsp_tbl 
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	
+	
+	<insert id="join" parameterType="com.ezen.shop.member.MemberVO">
+	
+		insert into 
+			mbsp_tbl
+				(mbsp_id,mbsp_name,mbsp_email,mbsp_password,mbsp_zipcode,mbsp_addr,mbsp_deaddr,mbsp_phone,mbsp_nick,mbsp_receive)
+			values
+			    (#{mbsp_id}, #{mbsp_name}, #{mbsp_email}, #{mbsp_password}, #{mbsp_zipcode}, #{mbsp_addr}, #{mbsp_deaddr}, #{mbsp_phone}, #{mbsp_nick}, #{mbsp_receive})
+	
+	</insert>
+	
+	<select id="login" parameterType="String" resultType="com.ezen.shop.member.MemberVO">
+		
+		select 
+			mbsp_id,mbsp_name,mbsp_email,mbsp_password,mbsp_lastlogin 
+		from 
+			mbsp_tbl 
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<select id="modify" parameterType="String" resultType="com.ezen.shop.member.MemberVO">
+		
+		select 
+			mbsp_id,mbsp_name,mbsp_email,mbsp_password,mbsp_zipcode,mbsp_addr,mbsp_deaddr,mbsp_phone,mbsp_nick,
+			mbsp_receive, mbsp_point, mbsp_lastlogin, mbsp_datesub, mbsp_updatedate
+		from 
+			mbsp_tbl 
+		where mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<update id="modify_save" parameterType="com.ezen.shop.member.MemberVO">
+	
+		update 
+			mbsp_tbl
+		set
+			mbsp_name = #{mbsp_name}, mbsp_email = #{mbsp_email}, mbsp_zipcode = #{mbsp_zipcode}, mbsp_addr = #{mbsp_addr}, 
+			mbsp_deaddr = #{mbsp_deaddr}, mbsp_phone = #{mbsp_phone},mbsp_nick = #{mbsp_nick}, mbsp_updatedate = now()
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</update>
+	
+	 
+	<update id="pwchange" parameterType="Map">
+	
+		update 
+			mbsp_tbl 
+		set 
+			mbsp_password = #{mbsp_password}
+		where 
+			mbsp_id  = #{mbsp_id}
+		
+	
+	</update>
+	
+	<select id="idsearch" parameterType="Map" resultType="String">
+		
+		select 
+			mbsp_id 
+		from 
+			mbsp_tbl
+		where 
+			mbsp_name = #{mbsp_name} and mbsp_email = #{mbsp_email}
+		
+	</select>
+	
+	
+	<select id="pwtemp_confirm" parameterType="Map" resultType="String">
+	
+		select 
+			mbsp_email 
+		from 
+			mbsp_tbl
+		where 
+			mbsp_id = #{mbsp_id} and mbsp_email = #{mbsp_email}
+	
+	</select>
+	
+
+</mapper>

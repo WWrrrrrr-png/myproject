@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.admin.order.AdOrderMapper">
+
+	<select id="order_list" resultType="HashMap" parameterType="com.ezen.shop.common.utils.SearchCriteria">
+		select 
+			o.ord_code, o.ord_name, o.ord_price, o.ord_status, p.payment_id, p.payment_method, p.payment_status, o.ord_regdate
+		from 
+			order_tbl o
+		inner join 
+			payment_tbl p
+		on 
+			o.ord_code = p.ord_code
+			
+		where o.ord_code > 0
+			
+		<include refid="search"></include>
+		<include refid="period"></include>	
+		<include refid="payment_method"></include>
+		<include refid="ord_status"></include>	
+			
+		order by 
+		    o.ord_regdate desc
+		limit 
+		    #{cri.pageStart}, #{cri.perPageNum}
+	
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+	
+		select 
+			count(*)
+		from 
+			order_tbl o
+		inner join 
+			payment_tbl p
+		on 
+			o.ord_code = p.ord_code
+			
+		where 
+			o.ord_code > 0
+			
+		<include refid="search"></include>
+		<include refid="period"></include>
+		<include refid="payment_method"></include>	
+		<include refid="ord_status"></include>	
+	
+	</select>
+
+   <sql id="search">
+	   <if test="cri.searchType != null">
+	   	<if test="cri.searchType == 'c'.toString()">
+	   		and o.ord_code = #{cri.keyword}
+	   	</if>
+	   	<if test="cri.searchType == 'm'.toString()">
+	   		and o.mbsp_id = #{cri.keyword}
+	   	</if>
+	   	<if test="cri.searchType == 'o'.toString()">
+	   		and o.ord_name = #{cri.keyword}
+	   	</if>
+	   	<if test="cri.searchType == 'p'.toString()">
+	   		and p.payment_method like concat('%', #{cri.keyword}, '%') 
+	   	</if>
+	   </if>
+ 	</sql>
+ 	
+ 	<sql id="period">
+  		<if test="period != null and !period.equals('') and start_date != null and !start_date.equals('') and end_date != null and !end_date.equals('')"> 		
+ 			<if test="period == 'ord_regdate'.toString()">
+ 				<![CDATA[
+	   			and o.ord_regdate >= date(#{start_date}) and o.ord_regdate < date(#{end_date}) + 1
+	   			]]>
+	   		</if>
+		   	<if test="period == 'payment_date'.toString()">
+		   		<![CDATA[
+		   		and p.payment_date >= date(#{start_date}) and p.payment_date < date(#{end_date}) +1
+		   		]]>		   		
+		   	</if> 		 		
+ 		</if>	
+ 	</sql>
+ 	
+ 	<sql id="payment_method">	
+ 		<if test="payment_method != null and !payment_method.equals('')">
+ 			
+ 			and p.payment_method like concat('%', #{payment_method}, '%') 
+ 		</if>	
+ 	</sql>
+ 	
+ 	<sql id="ord_status">	
+ 		<if test="ord_status != null and !ord_status.equals('')">			
+ 			and o.ord_status = #{ord_status} 
+ 		</if>	
+ 	</sql>
+ 	
+ 	<select id="orderdetail_info" resultType="HashMap">
+ 	
+ 		select 
+ 			ot.ord_code, pt.pro_name, pt.pro_num, pt.pro_up_folder, pt.pro_img, ot.dt_amount, ot.dt_price, o.ord_status, o.ord_regdate 
+		from 
+			order_tbl o 
+		inner join 
+			ordetail_tbl ot
+		on 
+			o.ord_code = ot.ord_code
+		inner join 
+			product_tbl pt
+		on 
+			ot.pro_num  = pt.pro_num
+		where 
+			ot.ord_code = #{ord_code}
+ 		
+ 	</select>
+ 	
+ 	<select id="payment_info" resultType="com.ezen.shop.payment.PaymentVO">
+ 	
+ 		select 
+ 			payment_id, ord_code, mbsp_id, payment_method, payment_price, payment_status, payment_date 
+ 		from 
+ 			payment_tbl 
+ 		where ord_code = #{ord_code}
+ 	
+ 	</select>
+ 	
+ 	<select id="order_info" resultType="com.ezen.shop.order.OrderVO">
+ 	
+ 		select 	
+ 			ord_code, mbsp_id, ord_name, ord_addr_zipcode, ord_addr_basic, ord_addr_detail, ord_tel, ord_mail, ord_price, ord_status, ord_message, ord_regdate 
+		from 
+			order_tbl 
+		where 
+			ord_code = #{ord_code}
+ 	
+ 	</select>
+ 	
+ 	<update id="admin_ord_message" parameterType="map">
+ 	
+ 		update
+ 			order_tbl
+ 		set
+ 			ord_message = #{ord_message}
+ 		where 
+			ord_code = #{ord_code}	
+ 	
+ 	</update>
+ 	
+ 	<update id="order_info_edit">
+ 	
+ 		update
+ 			order_tbl
+ 		set
+ 			ord_name = #{ord_name}, ord_addr_zipcode = #{ord_addr_zipcode}, ord_addr_basic = #{ord_addr_basic}, ord_addr_detail = #{ord_addr_detail}, ord_tel = #{ord_tel}, ord_mail = #{ord_mail}
+ 		where 
+			ord_code = #{ord_code}
+ 	
+ 	</update>
+ 	
+ 	<delete id="order_product_del" parameterType="map">
+ 	
+ 		delete from
+ 			ordetail_tbl
+ 		where
+ 			ord_code = #{ord_code}
+ 		and
+ 			pro_num = #{pro_num}
+ 	
+ 	</delete>
+ 	
+ 	<select id="order_total_price" resultType="int">
+ 	
+ 		select 
+ 			sum(dt_price * dt_amount) as ord_total_price
+ 		from 
+ 			ordetail_tbl
+		where 
+			ord_code = #{ord_code}
+ 	
+ 	</select>
+ 	
+ 	<update id="order_info_change_price">
+ 	
+ 		update 
+ 			order_tbl
+ 		set
+ 			ord_price = #{ord_total_price}
+ 		where 
+			ord_code = #{ord_code}
+ 	
+ 	</update>
+ 	
+ 	<update id="payment_change_price">
+ 	
+ 		update 
+ 			payment_tbl
+ 		set
+ 			payment_price = #{ord_total_price}
+ 		where 
+			ord_code = #{ord_code}
+ 	
+ 	</update>
+ 	
+ 	
+ 	<update id="order_status" parameterType="map">
+ 	
+ 		update 
+ 			order_tbl
+ 		set
+ 			ord_status = #{ord_status}
+ 		where 
+			ord_code = #{ord_code}
+ 	
+ 	</update>
+ 	
+</mapper>

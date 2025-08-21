@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/ad_layout}">
+
+	<th:block layout:fragment="script">
+		
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    
+   	
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+			
+		
+	</th:block>
+
+	<th:block layout:fragment="content">
+	      
+	  <div class="container mt-5">
+		<div class="row">
+			<div class="col">
+				<div class="card card-primary">
+					<div class="card-header">
+					  <h3 class="card-title">전체주문통계</h3>
+					</div>
+					<!-- /.card-header -->
+					<!-- list start -->
+					<div class="card-body">
+						 <div class="row">
+							<div class="col">
+								<button type="button" value="daily" name="statType" class="btn btn-outline-success">일자별</button>
+								<button type="button" value="hourly" name="statType" class="btn btn-outline-success">시간별</button>
+								<button type="button" value="weekly" name="statType" class="btn btn-outline-success">요일별</button>
+								<button type="button" value="monthly" name="statType" class="btn btn-outline-success">월별</button>
+							</div>
+						 </div>
+						 <div class="row mt-3">
+							<div id="dailyOptions" class="options col" style="display: block;">
+								<input type="month" id="dateInput">
+							</div>
+							
+							<div id="hourlyOptions" class="options col" style="display: none;">
+								<input type="date" id="hourlyStartDate"> ~ <input type="date" id="hourlyEndDate">
+							</div>
+
+							<div id="weeklyOptions" class="options col" style="display: none;">
+								<input type="date" id="weeklyStartDate"> ~ <input type="date" id="weeklyEndDate">
+							</div>
+
+							<div id="monthlyOptions" class="options col" style="display: none;">
+								<input type="text" id="yearpicker" placeholder="년도 선택하세요.">
+							</div>
+							<div class="col-2">
+								<button type="button" class="btn btn-outline-primary" id="search">검색</button>
+						</div>
+
+						 </div>
+						 <div class="row">
+							<div class="col">
+								<canvas id="statsChart" width="400" height="200"></canvas>
+							</div>							
+						 </div>						 
+					</div>
+
+					<div class="card-footer clearfix">
+						
+					</div>
+				 </div>
+			</div>
+		</div>
+	  </div>
+	
+		
+	</th:block>
+
+	<th:block layout:fragment="script2">
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>	
+		<script>
+
+			$(document).ready(function() {
+				
+				$("#yearpicker").datepicker({
+					changeYear: true,
+					showButtonPanel: true,
+					dateFormat: 'yy',
+					onClose: function(dateText, inst) { 
+						var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
+						$(this).datepicker('setDate', new Date(year, 1));
+					}
+            	});
+
+				$("#yearpicker").focus(function () {
+					$(".ui-datepicker-month").hide();
+					$(".ui-datepicker-calendar").hide();
+				});
+				
+				
+				
+				const ctx = document.getElementById('statsChart').getContext('2d');
+            	let chart;
+				let type = 'daily';
+				$(`#${type}Options`).show();
+
+				$("button[name='statType']").on("click", function() {
+					console.log("버튼", $(this).val());
+
+					type = $(this).val();
+					$('.options').hide();
+					$(`#${type}Options`).show();
+				});
+				
+				$("#search").on("click", function() {										
+
+					let url = `/admin/statist/${type}`;
+					let labelName = "";
+
+					console.log("검색", url);
+                	
+					let params = {};
+
+					if (type == 'daily') {
+						params = {
+							date: $('#dateInput').val()
+							};
+						labelName = $('#dateInput').val();
+					} else if (type == 'hourly') {
+						const date = new Date($('#hourlyEndDate').val());
+						date.setDate(date.getDate() + 1);
+						
+						const year = date.getFullYear();
+						const month = String(date.getMonth() + 1).padStart(2, '0');
+						const day = String(date.getDate()).padStart(2, '0');
+
+						//console.log(date.toDateString());
+
+						labelName = $('#hourlyStartDate').val() + " - " + `${year}-${month}-${day}`;
+
+						params = {
+							start_date: $('#hourlyStartDate').val(),
+							end_date: `${year}-${month}-${day}`
+						};
+					} else if (type == 'weekly') {
+						const date = new Date($('#weeklyEndDate').val());
+						date.setDate(date.getDate() + 1);
+						
+						const year = date.getFullYear();
+						const month = String(date.getMonth() + 1).padStart(2, '0');
+						const day = String(date.getDate()).padStart(2, '0');
+
+						//console.log(date.toDateString());
+
+						labelName = $('#weeklyStartDate').val() + " - " + `${year}-${month}-${day}`;
+
+						params = {
+							start_date: $('#weeklyStartDate').val(),
+							end_date: `${year}-${month}-${day}`
+						};
+					} else if (type == 'monthly') {
+						params = { year: $('#yearpicker').val() };
+						labelName = $('#yearpicker').val() + " 년";
+					}
+					
+					//$('.options').hide();
+					//const selectedType = $(this).val();
+					
+
+					fn_ajax(type, url, params, labelName);
+				});
+
+
+				function fn_ajax(type, url, params, labelName) {
+					$.get(url, params, function (data) {
+
+					const labels = data.map(item => item.date || item.hour || item.weekday || item.month);
+					const values = data.map(item => item.total_sales);
+
+					$(`#${type}Options`).show();
+
+					// 차트 갱신
+					if (chart  !== undefined) {
+						chart.destroy();
+					}
+
+					const backgroundColors = [
+						'rgba(255, 99, 132, 0.2)',
+						'rgba(54, 162, 235, 0.2)',
+						'rgba(255, 206, 86, 0.2)',
+						'rgba(75, 192, 192, 0.2)',
+						'rgba(153, 102, 255, 0.2)',
+						'rgba(255, 159, 64, 0.2)',
+						'rgba(199, 199, 199, 0.2)'
+					];
+
+					const borderColors = [
+						'rgba(255, 99, 132, 1)',
+						'rgba(54, 162, 235, 1)',
+						'rgba(255, 206, 86, 1)',
+						'rgba(75, 192, 192, 1)',
+						'rgba(153, 102, 255, 1)',
+						'rgba(255, 159, 64, 1)',
+						'rgba(199, 199, 199, 1)'
+					];
+
+					chart = new Chart(ctx, {
+						type: 'bar',
+						data: {
+							labels: labels,
+							datasets: [{
+								label: labelName,
+								data: values,
+								backgroundColor: backgroundColors,
+								borderColor: borderColors,
+								borderWidth: 1
+							}]
+						},
+						options: {
+							scales: {
+								y: {
+									beginAtZero: true
+								}
+							}
+						}
+					});
+				});
+			 }
+
+			});	// end ready event
+	
+		</script>
+
+	</th:block>
+</html>

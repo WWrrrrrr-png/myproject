@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Year Selector</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // <canvas>태그를 참조하여, 2d형태로 작업
+            const ctx = document.getElementById('orderChart').getContext('2d');
+            let orderChart; // undefined
+
+            const ctx2 = document.getElementById('orderChart2').getContext('2d');
+            let orderChart2; // undefined
+
+            function fetchAndUpdateChart(year) {
+                $.ajax({
+                    url: '/admin/statist/monthlysales',
+                    type: 'GET',
+                    data: { year: year },
+                    success: function (response) {
+                        
+                        console.log("response", response);
+                        
+                        const labels = response.labels;
+                        const data = response.data;
+
+                        console.log("labels", labels);
+                        console.log("data", data);
+
+                        if (orderChart) {  // undefined 값은 false로 해석.
+                            orderChart.destroy();
+                        }
+
+                        orderChart = new Chart(ctx, {
+                            type: 'bar',   // 차트종류
+                            data: {
+                                labels: labels, // x축
+                                datasets: [{
+                                    label: `Order Amount (${year})`,  // 제목
+                                    data: data,  // y축
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: true },
+                                tooltip: { enabled: true }
+                            },
+                            scales: {
+                                x: {
+                                    title: { display: true, text: '월별' }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: '주문금액' }
+                                }
+                            }
+                        }
+                       });
+                    },
+                    error: function () {
+                        alert('Failed to fetch data.');
+                    }
+                });
+            }
+            // 년도를 변경선택 하면.
+            $('select#year').change(function () {
+                const selectedYear = $(this).val(); // 선택한 년도
+                fetchAndUpdateChart(selectedYear);
+            });
+
+            // Initial load
+            //fetchAndUpdateChart($('#year').val());
+
+            function fetchAndUpdateChart2(year) {
+                $.ajax({
+                    url: '/admin/statist/monthlysales2',
+                    type: 'GET',
+                    data: { year: year },
+                    success: function (data) {
+                        
+                        console.log("data", data.length); //12
+                        
+                        // 자바스크립트 배열 초기화
+                        const labels = []; // x축 좌표
+                        const salesData = [];  // y축 좌표
+
+                        // 차트 데이타에 맞게 배열작업
+                        for(let i=0; i<data.length; i++) {
+                            labels.push(data[i].month);
+                            salesData.push(data[i].amount);
+                        }
+                        
+                        // 차이점.
+                        // data.foreach(item => {
+                        //     labels.push(item.month + " 월");
+                        //     salesData.push(item.amount);
+                        // });
+
+                        
+
+                        /*
+                        if (orderChart2) {  // undefined 값은 false로 해석.
+                            console.log("차트 업데이트");
+
+                            orderChart2.data.labels = labels;
+                            orderChart2.data.datasets[0].data = salesData;
+                            orderChart2.update();
+                        }
+                        */
+                        
+                        // 차트 인스턴스를 초기화.
+                        if(orderChart2 !== undefined) {
+                            console.log("차트 인스턴스 제거");
+                            orderChart2.destroy();
+                        }
+                        
+                        
+                        orderChart2 = new Chart(ctx2, {
+                            type: 'bar',   // 차트종류
+                            data: {
+                                labels: labels, // x축
+                                datasets: [{
+                                    label: `Order Amount (${year})`,  // 제목
+                                    data: salesData,  // y축
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: true },
+                                tooltip: { enabled: true }
+                            },
+                            scales: {
+                                x: {
+                                    title: { display: true, text: '월별' }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: '주문금액' }
+                                }
+                            }
+                        }
+                       });
+                    },
+                    error: function () {
+                        alert('Failed to fetch data.');
+                    }
+                });
+
+                
+            }
+
+            $('#year2').change(function () {
+                const selectedYear = $(this).val(); // 선택한 년도
+                fetchAndUpdateChart2(selectedYear);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <h1>Select a Year</h1>
+                    <label for="year">Year:</label>
+                    <select id="year" name="year">
+                        <option value="" selected>년도를 선택하세요.</option>
+                        <option th:each="year : ${#numbers.sequence(#dates.year(#dates.createNow()), #dates.year(#dates.createNow()) - 4)}"
+                                th:value="${year}" th:text="${year}">
+                        </option>
+                    </select>
+                <div style="width: 500px; height: 500px;">
+                    <canvas id="orderChart"></canvas>
+                </div>
+            </div>
+            <div class="col-6">
+                <h1>Select a Year</h1>
+                    <label for="year2">Year:</label>
+                    <select id="year2" name="year2">
+                        <option value="" selected>년도를 선택하세요.</option>
+                        <option th:each="year : ${#numbers.sequence(#dates.year(#dates.createNow()), #dates.year(#dates.createNow()) - 4)}"
+                                th:value="${year}" th:text="${year}">
+                        </option>
+                    </select>
+                <div style="width: 500px; height: 500px;">
+                    <canvas id="orderChart2"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="date">
+    <input type="month">
+    <input type="week">
+</body>
+</html>

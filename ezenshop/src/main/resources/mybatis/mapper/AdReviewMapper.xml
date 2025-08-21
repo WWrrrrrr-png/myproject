@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.admin.review.AdReviewMapper">
+
+	<!-- 상품후기 답변테이블이 사용하지 않은 경우
+	<select id="review_list" resultType="HashMap">
+	
+		select 
+			rt.rev_code, rt.mbsp_id, rt.pro_num, rt.rev_content, rt.rev_rate, rt.rev_date, pt.pro_name, pt.pro_up_folder, pt.pro_img 
+		from 
+			review_tbl rt 
+		inner 
+			join product_tbl pt 
+		on 
+			rt.pro_num  = pt.pro_num
+		where 
+			rt.rev_code > 0
+			
+		<include refid="search"></include>
+		<include refid="rev_rate"></include>
+		<include refid="rev_content"></include>
+		
+		order by rt.rev_date desc
+		
+		limit #{cri.pageStart}, #{cri.perPageNum}	
+	</select>
+	 -->
+	 
+	<!-- 상품후기 답변테이블이 사용 --> 
+	<select id="review_list" resultMap="ReviewWithProductAndRepliesMap">
+	
+		select 
+			rt.rev_code, rt.mbsp_id, rt.pro_num, rt.rev_content, rt.rev_rate, rt.rev_date, 
+			pt.pro_name, pt.pro_up_folder, pt.pro_img,
+			rrt.reply_id, rrt.manager_id, rrt.reply_text, rrt.reply_date 
+		from 
+		 	review_tbl rt 	
+		left join 
+		 	product_tbl pt
+		on 
+			rt.pro_num  = pt.pro_num
+		left join 
+			review_replies_tbl rrt 
+		on 
+			rt.rev_code = rrt.rev_code
+		where 
+			rt.rev_code > 0
+			
+		<include refid="search"></include>
+		<include refid="rev_rate"></include>
+		<include refid="rev_content"></include>
+		
+		order by rt.rev_code desc
+		
+		limit #{cri.pageStart}, #{cri.perPageNum}		
+	
+	</select>
+	
+	
+	<!--  위의 left outer join의 실행결과를 저장할 출력포맷을 지정 -->
+	<resultMap id="ReviewWithProductAndRepliesMap" type="com.ezen.shop.review.ReviewVO">
+	    <!-- Review 기본 정보 -->
+	    <id property="rev_code" column="rev_code"/> <!-- Review PK -->
+	    <result property="mbsp_id" column="mbsp_id"/>
+	    <result property="pro_num" column="pro_num"/>
+	    <result property="rev_content" column="rev_content"/>
+	    <result property="rev_rate" column="rev_rate"/>
+	    <result property="rev_date" column="rev_date"/>
+	
+	    <!-- Product 정보 -->
+	    <association property="product" javaType="com.ezen.shop.admin.product.ProductVO">
+	        <result property="pro_name" column="pro_name"/>
+	        <result property="pro_up_folder" column="pro_up_folder"/>
+	        <result property="pro_img" column="pro_img"/>
+	    </association>
+	
+	    <!-- Replies 정보 -->
+	    <collection property="replies" ofType="com.ezen.shop.review.ReviewReply">
+	        <id property="reply_id" column="reply_id"/> <!-- Reply PK -->
+	        <result property="manager_id" column="manager_id"/>
+	        <result property="reply_text" column="reply_text"/>
+	        <result property="reply_date" column="reply_date"/>
+	    </collection>
+	</resultMap>
+	 
+	<select id="review_count" resultType="int">
+	
+		select 
+			count(*) 
+		from 
+			review_tbl rt
+		left join
+			product_tbl p
+		on
+			rt.pro_num = p.pro_num
+		where 
+			rt.rev_code > 0	
+					
+		<include refid="search"></include>
+		<include refid="rev_rate"></include>
+		<include refid="rev_content"></include>
+	
+	</select>
+	
+	<sql id="search">		
+		<if test="cri.searchType != null">
+	   	<if test="cri.searchType == 'n'.toString()">
+	   		and pt.pro_name like concat('%', #{cri.keyword}, '%') 
+	   	</if>
+	   	<if test="cri.searchType == 'c'.toString()">
+	   		and pt.pro_num = #{cri.keyword}
+	   	</if>
+	   	<if test="cri.searchType == 'i'.toString()">
+	   		and rt.mbsp_id = #{cri.keyword}
+	   	</if>
+	   </if>
+	</sql>
+	
+	<sql id="rev_rate">
+		<if test="rev_rate != null and  !rev_rate.equals('')">
+			and rt.rev_rate = #{rev_rate}
+		</if>
+	</sql>
+	
+	<sql id="rev_content">
+		<if test="rev_content != null and  !rev_content.equals('')">
+			and rt.rev_content like concat('%', #{rev_content}, '%')
+		</if>
+	
+	</sql>
+	
+	<select id="reply_info" resultType="com.ezen.shop.review.ReviewReply">
+	
+		select 
+			reply_id, rev_code, manager_id, reply_text, reply_date 
+		from 
+			review_replies_tbl
+		where 
+			reply_id = #{reply_id}
+	
+	</select>
+	
+	<update id="reply_modify">
+	
+		update
+			review_replies_tbl
+		set
+			reply_text = #{reply_text}, reply_date = now()
+		where 
+			reply_id = #{reply_id}
+	
+	</update>
+	
+	<delete id="reply_delete">
+	
+		delete from 
+			review_replies_tbl
+		where 
+			reply_id = #{reply_id}
+			
+	</delete>
+
+</mapper>

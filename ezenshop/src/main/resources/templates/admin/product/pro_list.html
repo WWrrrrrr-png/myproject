@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/ad_layout}">
+
+	<th:block layout:fragment="script">
+		<script src="/ckeditor/ckeditor.js"></script>
+	</th:block>
+
+	<th:block layout:fragment="content">
+	      
+	  <div class="container mt-5">
+		<div class="row">
+			<div class="col">
+				<div class="card card-primary">
+					<div class="card-header">
+					  <h3 class="card-title">상품 목록</h3>
+					</div>
+					<!-- /.card-header -->
+					<!-- list start -->
+					<div class="card-body">
+						<!-- search form start -->
+					<form action="/admin/product/pro_list" method="get">
+					 <div class="row">
+					 	<div class="col-2">검색어</div>	
+						<div class="col-3">												
+							<select name="searchType" class="form-control">
+								<option selected>검색종류 선택</option>
+								<option value="n">상품명</option>
+								<option value="c">상품코드</option>
+								<option value="p">제조사</option>
+								<option value="np">상품명 or 제조사</option>
+							</select>								
+						</div>					
+						<div class="col-7">
+							<input type="text" name="keyword" class="form-control" placeholder="Enter ...">
+						</div>
+					 </div>											
+				
+				<div class="row mt-3">
+					<div class="col-2">카테고리</div>
+					<div class="col-5">
+						<div class="form-group">
+							<select class="form-control" name="cate_prt_code" id="btn_firstCategory">
+							  <option>1차 분류</option>						  
+							  <option th:each="category : ${cate_list}" th:value="${category.cate_code}" th:text="${category.cate_name}">option 2</option>							  
+							</select>							
+						</div>
+					</div>
+					<div class="col-5">
+						<div class="form-group">
+							<select class="form-control" name="cate_code" id="btn_secondCategory">
+								<option>2차 분류</option>	
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-2">날짜</div>
+					<div class="col-2">
+						<div class="form-group">
+							<select class="form-control">
+								<option>등록일</option>
+								<option>수정일</option>	
+							</select>							
+						</div>
+					</div>
+					<div class="col-3">
+						<input type="date" id="start_date">
+						<input type="date" id="end_date">
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-sm btn-outline-info">오늘</button>
+						<button type="button" class="btn btn-sm btn-outline-info">3일간</button>
+						<button type="button" class="btn btn-sm btn-outline-info">일주일</button>
+						<button type="button" class="btn btn-sm btn-outline-info">1개월</button>
+						<button type="button" class="btn btn-sm btn-outline-info">3개월</button>
+						<button type="button" class="btn btn-sm btn-outline-info">전체</button>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col text-center">
+						<button type="submit" class="btn btn-primary">검색</button>
+						<button type="button" class="btn btn-outline-primary">초기화</button>
+					</div>
+				</div>
+			</form>
+				<div class="row mt-4">
+					<div class="col">
+						<button type="button" class="btn btn-outline-danger" id="btn_sel_delete_1">선택삭제1(ajax)</button>
+						<button type="button" class="btn btn-outline-danger" id="btn_sel_delete_2">선택삭제2(form)</button>
+						
+					</div>
+				</div>	
+				<div class="row mt-2">
+					<div class="col">
+					 <form name="frm_pro_list" id="frm_pro_list" method="post" action="/admin/product/pro_sel_delete_2">
+						<table class="table table-bordered">
+						  <thead>
+							<tr>
+							  <th style="width: 5%">
+								<input type="checkbox" id="checkAll">
+							  </th>
+							  <th style="width: 5%;">상품코드</th>
+							  <th style="width: 40%;">상품정보</th>
+							  <th style="width: 10%">판매가</th>
+							  <th style="width: 10%">재고량</th>
+							  <th style="width: 10%">등록일</th>
+							  <th style="width: 10%">관리</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr th:each= "productVO:${pro_list}">
+							  <td>
+								<input type="checkbox" name="check" th:value="${productVO.pro_num}">
+								<input type="hidden" name="pro_up_folder" th:value="${productVO.pro_up_folder}">
+								<input type="hidden" name="pro_img" th:value="|s_${productVO.pro_img}|">
+							  </td>
+							  <td>[[${productVO.pro_num}]]</td>
+							  <td>
+							  	[[${productVO.pro_name}]]<br>
+							  	<img style="width: 100px;height: 100px;" th:src="${'/admin/product/image_display?dateFolderName=' + productVO.pro_up_folder + '&fileName=s_' + productVO.pro_img}">
+							  </td>
+							  <td>[[${#numbers.formatInteger(productVO.pro_price, 3, 'COMMA') + '원'}]]</td>
+							  <td>[[${productVO.pro_discount}]]</td>
+							  <td>
+								[[${#dates.format(productVO.pro_date, 'yyyy-MM-dd HH:mm:ss')}]]
+							  </td>
+							  <td>
+								<button type="button" class="btn btn-block btn-sm btn-outline-primary" th:data-pro_num="${productVO.pro_num}" name="btn_pro_edit">EDIT</button>
+								<button type="button" class="btn btn-block btn-sm btn-outline-primary" th:data-pro_num="${productVO.pro_num}" name="btn_pro_del">DELETE</button>
+							  </td>
+							</tr>
+							
+						  </tbody>
+						</table>
+					</form>
+					<!-- 페이징및검색 파라미터 정보 : 현재 목록상태를 작업(수정,삭제)을 하고 돌아왔을 때 유지. -->
+					<form id="criteriaForm" action="" method="get">
+						<!-- 4개은 페이징,검색파라미터 -->
+						<input type="hidden" name="page" id="page" th:value="${pageMaker.cri.page}" />
+						<input type="hidden" name="perPageNum" id="perPageNum" th:value="${pageMaker.cri.perPageNum}" />
+						<input type="hidden" name="searchType" id="searchType" th:value="${pageMaker.cri.searchType}" />
+						<input type="hidden" name="keyword" id="keyword" th:value="${pageMaker.cri.keyword}" />
+
+						<!-- 이미지 파일 삭제를 위한 정보 -->
+						<input type="hidden" name="pro_up_folder" id="pro_up_folder">
+						<input type="hidden" name="pro_img" id="pro_img">
+
+						<!-- 수정상품코드 -->
+						<input type="hidden" name="pro_num" id="pro_num">
+					</form>
+				</div>
+				</div>	 
+			</div>
+
+					<div class="card-footer clearfix">
+						<nav aria-label="Page navigation example">
+							<ul class="pagination">
+							<!-- 이전표시여부 Previous  pageMaker.getPrev() -->
+							<th:block th:if="${pageMaker.prev}">
+								<li class="page-item"><a class="page-link" th:href="|/admin/product/pro_list${pageMaker.makeSearch(pageMaker.startPage - 1)}|">Previous</a></li>
+							</th:block>
+								<!--  페이지번호 출력.  1  2  3  4  5 -->
+								<th:block th:each="num : ${#numbers.sequence(pageMaker.startPage, pageMaker.endPage)}">
+								<li class="page-item" th:classappend="${pageMaker.cri.page == num ? 'active' : ''}">
+									<a class="page-link" th:href="|/admin/product/pro_list${pageMaker.makeSearch(num)}|" th:text="${num}"></a>
+								</li>        
+								</th:block>
+							
+							<!--  다음표시여부 Next -->
+							<th:block th:if="${pageMaker.next}">
+								<li class="page-item"><a class="page-link" th:href="|/admin/product/pro_list${pageMaker.makeSearch(pageMaker.endPage + 1)}|">Next</a></li>
+							</th:block>
+							</ul>
+						</nav>
+					</div>
+				 </div>
+			</div>
+		</div>
+	  </div>
+	  <script>
+		// ckeditor 설정
+		var ckeditor_config = {
+	             resize_enabled : false,
+	             enterMode : CKEDITOR.ENTER_BR,
+	             shiftEnterMode : CKEDITOR.ENTER_P,
+	             toolbarCanCollapse : true,
+	             removePlugins : "elementspath", 
+	             //업로드 탭기능추가 속성. CKEditor에서 파일업로드해서 서버로 전송클릭하면 , 이 주소가 동작된다.
+	             filebrowserUploadUrl: '/admin/product/imageupload'
+	     }
+	
+		 // id="content" 인 textarea태그에 ckeditor_config변수가 가지고 있는 설정정보를 적용하겠다.
+		 CKEDITOR.replace("pro_content", ckeditor_config);
+
+	</script>
+	    
+	</th:block>
+
+	<th:block layout:fragment="script2">
+		<script>
+
+			$(document).ready(function() {
+	
+				// 1차 카테고리 클릭이벤트 등록.  id="btn_firstCategory"
+				$("#btn_firstCategory").on("change", function() {
+					
+					let firstCategoryCode = $("#btn_firstCategory").val();
+
+					// 2차카테고리 목록을 가져오는 스프링의 매핑주소
+					let url = "/admin/category/secondcategory/" + firstCategoryCode;
+
+					$.getJSON(url, function(secondCategoryList) {
+
+						// console.log("2차카테고리정보", secondCategoryList);
+
+						// 2차카테고리 select태그를 참조
+						let secondCategoryCode = $("#btn_secondCategory");
+
+						let optionStr = "";
+
+						for(let i=0; i<secondCategoryList.length; i++) {
+							optionStr += "<option value='" + secondCategoryList[i].cate_code + "'>" + secondCategoryList[i].cate_name + "</option>";
+						}
+
+						secondCategoryCode.find("option").remove();
+						secondCategoryCode.append("<option>2차 분류</option");
+						secondCategoryCode.append(optionStr);
+					});
+					
+				});
+
+				// 상품이미지 미리보기.   id="pro_img_upload".  e 매개변수 : 선택한 파일정보
+				$("#pro_img_upload").on("change", function(e) {
+					let file = e.target.files[0]; // 파일첨부에서 선택한 한개의 파일을 가리키는 의미.
+
+					let reader = new FileReader(); // 파일 읽어오는 입력객체.
+					reader.readAsDataURL(file);
+
+					reader.onload = function(e) {
+						$("#img_preview").attr("src", e.target.result);
+					}
+
+				});
+
+				// 제목행 checkbox 클릭.  id="checkAll"
+				let isCheck = true; // 
+				$("#checkAll").on("click", function() {
+					// console.log("제목행 체크박스");
+					// this.checked : 제목행의 체크박스 상태
+					// 데이터행의 모든 체크박스 상태를 제목행의 체크상태로 적용
+					$("input[name='check']").prop("checked", this.checked);
+					isCheck = this.checked;					
+				});
+
+				// 데이터행 checkbox 클릭
+				$("input[name='check']").on("click", function() {
+					// 데이터행의 체크박스가 클릭이되면, 제목행 체크박스 상태를 데이타행의 체크박스 상태로 설정.
+					$("#checkAll").prop("checked", this.checked);
+
+					// 데이터행 checkbox가 모두 선택되어 있는 경우 제목행 체크박스 선택
+					//                    하나라도 선택되어 있지 않는 경우 제목행 체크박스 선택해제
+					$("input[name='check']").each(function() {
+						if(!$(this).is(":checked")) { // 데이터행이 체크가 안되어있는 경우 제목행 체크상태를 해제
+							$("#checkAll").prop("checked", false);
+						}
+					});
+				});
+
+				/*
+						1)location.href = "url주소" : 단일삭제
+						2)<form>태그사용
+						3)jquery ajax지원메서드 사용
+				*/
+
+				// 1)ajax용. 선택삭제1 클릭.  id="btn_sel_delete"
+				$("#btn_sel_delete_1").on("click", function() {
+					
+					if(!confirm("선택하신 상품을 삭제하겠습니까?")) return;
+					
+					//console.log("선택삭제");
+					if($("input[name='check']:checked").length == 0) {
+						alert("삭제할 상품을 체크하세요.");
+						return;
+					}
+
+					// 자바스크립트 배열문법.  https://www.w3schools.com/js/js_arrays.asp
+					const pro_num_arr = []; // 배열초기화.
+					const pro_up_folder_arr = [];
+					const pro_img_arr = [];
+					
+					// 체크된 상품코드 확인
+					$("input[name='check']:checked").each(function() {
+						pro_num_arr.push($(this).val());
+					});
+
+					//console.log("선택상품코드", pro_num_arr);
+
+					// 스프링부트 주소 호출.
+					$.ajax({
+						url: '/admin/product/pro_sel_delete_1',
+						type: 'post',
+						data : {pro_num_arr : pro_num_arr},
+						dataType: 'text',
+						success: function(result) {
+							if(result == 'success') {
+								alert("체크된 상품이 삭제되었습니다.");
+								location.href = "/admin/product/pro_list";
+							}
+						}
+					});
+
+					
+				});
+
+				// <form>태그방식
+				$("#btn_sel_delete_2").on("click", function() {
+
+					if(!confirm("선택하신 상품을 삭제하겠습니까?")) return;
+
+					if($("input[name='check']:checked").length == 0) {
+						alert("삭제할 상품을 체크하세요.");
+						return;
+					}
+
+					$("#frm_pro_list").submit();
+				});
+
+				
+				// id="criteriaForm"
+				let criteriaForm = $("#criteriaForm");
+				
+				// 수정버튼클릭.  name="btn_pro_edit"  data-pro_num="11"
+				$("button[name='btn_pro_edit']").on("click", function() {
+					//console.log("수정버튼클릭");
+					let pro_num = $(this).data("pro_num");
+
+					// <form id="criteriaForm"> 사용
+					$("#pro_num").val(pro_num);
+
+					criteriaForm.attr("action", "/admin/product/pro_edit");
+					
+					// 아래 구문을 주석을 걸고, 브라우저에서 criteriaForm 폼의 내용이 변경되는 것을 확인하고, 전송작업
+					criteriaForm.submit();
+				});
+
+				// 삭제버튼클릭.  name="btn_pro_del"
+				$("button[name='btn_pro_del']").on("click", function() {
+					
+					if(!confirm("삭제 하겠습니까?")) return;
+
+					let pro_num = $(this).data("pro_num");
+
+					// <form id="criteriaForm"> 사용
+					$("#pro_num").val(pro_num);
+					$("#pro_up_folder").val($(this).parent().parent().find("input[name='pro_up_folder']").val());
+					$("#pro_img").val($(this).parent().parent().find("input[name='pro_img']").val());
+
+					criteriaForm.attr("action", "/admin/product/pro_delete");
+					// 아래 구문을 주석을 걸고, 브라우저에서 criteriaForm 폼의 내용이 변경되는 것을 확인하고, 전송작업
+					criteriaForm.submit();
+				});
+
+	
+			}); // ready event end
+	
+		</script>
+
+	</th:block>
+</html>

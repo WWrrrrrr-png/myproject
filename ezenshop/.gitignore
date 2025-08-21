@@ -1,0 +1,31 @@
+# IDE 관련 파일
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Gradle 관련 파일
+.gradle/
+build/
+
+# Maven 관련 파일
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+
+# 로그 및 OS 관련 파일
+*.log
+*.swp
+.DS_Store
+
+# 환경 설정 파일 (민감 정보 포함 가능)
+application-private.properties
+application-real.properties
+# src/main/resources/kakaopay/kakaopay.properties
+# src/main/resources/mail/email.properties
+
+
+# src/main/resources/application.yml

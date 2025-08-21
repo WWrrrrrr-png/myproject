@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/ad_layout}">
+
+	<th:block layout:fragment="script">
+		<script>
+			// 날짜 설정 함수
+			function setDateRange(range) {
+				const today = new Date();  // 날짜객체.
+				const startInput = document.getElementById('start_date'); // 시작날짜 태그를 참조
+				const endInput = document.getElementById('end_date'); // 종료날짜 태그를 참조
+				
+				let startDate, endDate;
+	
+				switch (range) {
+					case 'today':
+						startDate = new Date(today);
+						endDate = new Date(today);
+						break;
+					case '3days':
+						startDate = new Date(today);
+						startDate.setDate(today.getDate() - 2);
+						endDate = new Date(today);
+						break;
+					case 'week':
+						startDate = new Date(today);
+						startDate.setDate(today.getDate() - 6);
+						endDate = new Date(today);
+						break;
+					case 'month':
+						startDate = new Date(today);
+						startDate.setMonth(today.getMonth() - 1);
+						endDate = new Date(today);
+						break;
+					case '3months':
+						startDate = new Date(today);
+						startDate.setMonth(today.getMonth() - 3);
+						endDate = new Date(today);
+						break;
+					case 'all':
+						startDate = '';
+						endDate = '';
+						break;
+					default:
+						return;
+				}
+	
+				// 포맷팅하여 input에 값 설정
+				startInput.value = startDate ? formatDate(startDate) : '';
+				endInput.value = endDate ? formatDate(endDate) : '';
+			}
+	
+			// 날짜를 yyyy-MM-dd 형식으로 포맷
+			function formatDate(date) {
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, '0');
+				const day = String(date.getDate()).padStart(2, '0');
+				return `${year}-${month}-${day}`;
+			}
+
+			function initializeSearchForm() {
+				// Get form elements by their IDs or names
+				const searchType = document.querySelector('select[name="searchType"]');
+				const keyword = document.querySelector('input[name="keyword"]');
+				const period = document.querySelector('select[name="period"]');
+				const startDate = document.getElementById('start_date');
+				const endDate = document.getElementById('end_date');
+				const paymentMethodRadios = document.querySelectorAll('input[name="payment_method"]');
+				const orderStatusRadios = document.querySelectorAll('input[name="ord_status"]');
+
+				// Reset dropdowns to the default options
+				if (searchType) searchType.value = ''; // Default to "검색종류 선택"
+				if (period) period.value = 'ord_regdate'; // Default to "주문일"
+
+				// Clear text input fields
+				if (keyword) keyword.value = '';
+				if (startDate) startDate.value = '';
+				if (endDate) endDate.value = '';
+
+				// Reset radio buttons to default (first radio button is checked)
+				if (paymentMethodRadios.length > 0) {
+					paymentMethodRadios.forEach((radio, index) => {
+						radio.checked = index === 0;
+					});
+				}
+
+				if (orderStatusRadios.length > 0) {
+					orderStatusRadios.forEach((radio, index) => {
+						radio.checked = index === 0;
+					});
+				}
+
+				console.log('Search form initialized.');
+			}
+
+			
+		</script>
+	</th:block>
+
+	<th:block layout:fragment="content">
+	      
+	  <div class="container mt-5">
+		<div class="row">
+			<div class="col">
+				<div class="card card-primary">
+					<div class="card-header">
+					  <h3 class="card-title">주문 목록</h3>
+					</div>
+					<!-- /.card-header -->
+					<!-- list start -->
+					<div class="card-body">
+						<!-- search form start -->
+					<form action="/admin/order/order_list" method="get">
+					 <div class="row">
+					 	<div class="col-2">검색어</div>	
+						<div class="col-3">												
+							<select name="searchType" class="form-control">
+								<option value="" th:selected="${''} == ${pageMaker.cri.searchType}">검색종류 선택</option>
+								<option value="c" th:selected="${'c'} == ${pageMaker.cri.searchType}">주문번호</option>
+								<option value="m" th:selected="${'m'} == ${pageMaker.cri.searchType}">회원아이디</option>
+								<option value="o" th:selected="${'o'} == ${pageMaker.cri.searchType}">주문자명</option>
+								<option value="p" th:selected="${'p'} == ${pageMaker.cri.searchType}">입금자명</option>								
+							</select>								
+						</div>					
+						<div class="col-7">
+							<input type="text" name="keyword" class="form-control" th:value="${pageMaker.cri.keyword}" placeholder="검색어를 입력하세요.">
+						</div>
+					 </div>											
+				
+				<div class="row mt-3">
+					<div class="col-2">날짜</div>
+					<div class="col-2">
+						<div class="form-group">
+							<select class="form-control" name="period">
+								<option value="ord_regdate" th:selected="${'ord_regdate'} == ${ord_regdate}">주문일</option>
+								<option value="payment_date" th:selected="${'payment_date'} == ${payment_date}">입금완료일</option>	
+							</select>							
+						</div>
+					</div>
+					<div class="col-3">
+						<input type="date" name="start_date" id="start_date" style="width: auto;" th:value="${start_date}">
+						<input type="date" name="end_date" id="end_date" style="width: auto;" th:value="${end_date}">
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('today')">오늘</button>
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('3days')">3일간</button>
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('week')">일주일</button>
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('month')">1개월</button>
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('3months')">3개월</button>
+						<button type="button" class="btn btn-sm btn-outline-info" onclick="setDateRange('all')">전체</button>
+					</div>
+				</div>
+				<div class="row mt-1">
+					<div class="col-2">결제방법</div>
+					<div class="col-10">
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="payment_method" value="" th:checked="${''} == ${payment_method}">
+							<label class="form-check-label" for="inlineRadio1">전체</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="payment_method" value="무통장" th:checked="${'무통장'} == ${payment_method}">
+							<label class="form-check-label" for="inlineRadio2">무통장</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="payment_method" value="계좌이체" th:checked="${'계좌이체'} == ${payment_method}">
+							<label class="form-check-label" for="inlineRadio3">계좌이체</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="payment_method" value="신용카드" th:checked="${'신용카드'} == ${payment_method}">
+							<label class="form-check-label" for="inlineRadio1">신용카드</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="payment_method" value="카카오페이" th:checked="${'카카오페이'} == ${payment_method}">
+							<label class="form-check-label" for="inlineRadio2">카카오페이</label>
+						</div>
+					</div>
+				</div>
+				<div class="row mt-3">
+					<div class="col-2">주문상태</div>
+					<div class="col-10">
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="" checked th:checked="${''} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio1">전체</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="입금대기" th:checked="${'입금대기'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio2">입금대기</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="입금완료" th:checked="${'입금완료'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio3">입금완료</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="배송준비" th:checked="${'배송준비'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio1">배송준비</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="배송중" th:checked="${'배송중'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio2">배송중</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="배송완료" th:checked="${'배송완료'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio1">배송완료</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="취소" th:checked="${'취소'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio2">취소</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="환불" th:checked="${'환불'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio3">환불</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="환불" th:checked="${'환불'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio1">반품</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<input class="form-check-input" type="radio" name="ord_status" value="교환" th:checked="${'교환'} == ${ord_status}">
+							<label class="form-check-label" for="inlineRadio2">교환</label>
+						</div>
+					</div>
+				</div>
+				<div class="row mt-3">
+					<div class="col text-center">
+						<button type="submit" class="btn btn-primary">검색</button>
+						<button type="button" class="btn btn-outline-primary" id="btn_search_init">초기화</button>
+					</div>
+				</div>
+			</form>	
+				<div class="row mt-4">
+					<div class="col">
+					 <form name="frm_pro_list" id="frm_pro_list" method="post" action="/admin/product/pro_sel_delete_2">
+						<table class="table table-bordered">
+						  <thead>
+							<tr>
+							  <th style="width: 10%;">주문날짜</th>
+							  <th style="width: 10%;">주문번호</th>
+							  <th style="width: 40%;">주문자</th>
+							  <th style="width: 10%">주문금액</th>
+							  <th style="width: 10%">결제방법</th>
+							  <th style="width: 10%">결제상태</th>
+							  <th style="width: 10%">주문상태</th>
+							  <th style="width: 10%">관리</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr th:each= "order_info:${order_list}">
+							  <td><!-- vo,dto 를 결과로 사용할 때는 dates, map으로 결과를 사용 할때는  temporals -->
+								[[${#temporals.format(order_info.ord_regdate, 'yyyy-MM-dd')}]]
+							  </td>
+							  <td>	
+								<a th:href= "@{/admin/order/orderdetail_info(ord_code=${order_info.ord_code})}">[[${order_info.ord_code}]]</a>
+							  </td>
+							  <td>[[${order_info.ord_name}]]</td>
+							  <td>[[${#numbers.formatInteger(order_info.ord_price, 3, 'COMMA') + '원'}]]</td>
+							  <td>[[${order_info.payment_method}]]</td>
+							  <td>
+								<select name="payment_status">
+									<option th:selected= "${order_info.payment_status == '입금미납'}">입금미납</option>
+									<option th:selected= "${order_info.payment_status == '입금완료'}">입금완료</option>									
+								</select>
+								<button type="button" name="btn_payment_status_change" th:data-payment_id="${order_info.payment_id}">변경</button>
+							  </td>
+							  <td>
+								<select name="ord_status">
+									<option th:selected= "${order_info.ord_status == '입금대기'}">입금대기</option>
+									<option th:selected= "${order_info.ord_status == '배송준비'}">배송준비</option>
+									<option th:selected= "${order_info.ord_status == '배송중'}">배송중</option>
+									<option th:selected= "${order_info.ord_status == '배송완료'}">배송완료</option>
+									<option th:selected= "${order_info.ord_status == '주문취소'}">주문취소</option>
+								</select>
+								<button type="button" name="btn_ord_status_change" th:data-ord_code="${order_info.ord_code}">변경</button>
+							  </td>
+							  <td>
+								<button type="button" class="btn btn-block btn-sm btn-outline-primary" th:data-ord_code="${order_info.ord_code}" name="btn_ord_detail">상세보기</button>								
+							  </td>
+							</tr>
+							
+						  </tbody>
+						</table>
+					</form>
+					<!-- 페이징및검색 파라미터 정보 : 현재 목록상태를 작업(수정,삭제)을 하고 돌아왔을 때 유지. -->
+					<form id="criteriaForm" action="/admin/order/order_list" method="get">
+						<!-- 4개은 페이징,검색파라미터 -->
+						
+						<input type="hidden" name="page" id="page" th:value="${pageMaker.cri.page}" />
+
+						<input type="hidden" name="perPageNum" id="perPageNum" th:value="${pageMaker.cri.perPageNum}" />
+						<input type="hidden" name="searchType" id="searchType" th:value="${pageMaker.cri.searchType}" />
+						<input type="hidden" name="keyword" id="keyword" th:value="${pageMaker.cri.keyword}" />
+
+						<!-- 날짜검색 파라미터 정보 -->
+						<input type="hidden" name="period" id="period" th:value="${period}"/>
+						<input type="hidden" name="start_date" id="start_date" th:value="${start_date}"/>
+						<input type="hidden" name="end_date" id="end_date" th:value="${end_date}"/>
+						<!-- 결제방법 파라미터 정보 -->
+						<input type="hidden" name="payment_method" id="payment_method" th:value="${payment_method}"/>
+						<!-- 주문상태 파라미터 정보 -->
+						<input type="hidden" name="ord_status" id="ord_status" th:value="${ord_status}"/>
+					</form>
+				</div>
+				</div>	 
+			</div>
+
+					<div class="card-footer clearfix">
+						<nav aria-label="Page navigation example">
+							<ul class="pagination">
+							<!-- 이전표시여부 Previous  pageMaker.getPrev() -->
+							<th:block th:if="${pageMaker.prev}">
+								<li class="page-item"><a class="page-link movepage" th:href="${pageMaker.startPage - 1}">Previous</a></li>
+							</th:block>
+								<!--  페이지번호 출력.  1  2  3  4  5 -->
+								<th:block th:each="num : ${#numbers.sequence(pageMaker.startPage, pageMaker.endPage)}">
+								<li class="page-item" th:classappend="${pageMaker.cri.page == num ? 'active' : ''}">
+									<a class="page-link movepage" th:href="${num}" th:text="${num}"></a>
+								</li>        
+								</th:block>
+							
+							<!--  다음표시여부 Next -->
+							<th:block th:if="${pageMaker.next}">
+								<li class="page-item"><a class="page-link movepage" th:href="${pageMaker.endPage + 1}">Next</a></li>
+							</th:block>
+							</ul>
+						</nav>
+					</div>
+				 </div>
+			</div>
+		</div>
+	  </div>
+	  <script>
+		
+
+	</script>
+	    
+	</th:block>
+
+	<th:block layout:fragment="script2">
+		<script>
+
+			$(document).ready(function() {
+	
+				let criteriaForm = $("#criteriaForm");
+				
+				// 페이지번호를 클릭  [이전] 1 2 3 4 5 [다음]
+				$("a.movepage").on("click", function(e) {
+					e.preventDefault(); // <a>태그의 링크기능을 제거
+
+					// id="page"
+					criteriaForm.find("input[name='page']").val($(this).attr("href"));
+					criteriaForm.submit();
+				});
+
+				// 상세보기 클릭.  name="btn_ord_detail"
+				$("button[name='btn_ord_detail']").on("click", function() {
+					let ord_code = $(this).data("ord_code");
+					location.href = `/admin/order/orderdetail_info?ord_code=${ord_code}`;
+				});
+
+				// 주문변경 클릭.  name="btn_ord_status_change"
+				$("button[name='btn_ord_status_change']").on("click", function() {
+					let ord_code = $(this).data("ord_code"); // 주문번호
+            		let ord_status = $(this).prev("select[name='ord_status']").val(); // 주문상태.
+
+					//console.log("주문번호", ord_code);
+					//console.log("주문상태", ord_status);
+
+					//return;
+            
+					$.ajax({
+						url: '/admin/order/order_status',
+						data: { ord_code : ord_code, ord_status : ord_status},
+						type: "post",
+						dataType : 'text',
+						success : function(result) {
+							if(result == "success") {
+								alert("주문상태가 변경되었습니다.");
+							}
+						}
+					});
+				});
+
+				// 결제상태 변경.  name="btn_payment_status_change"
+				$("button[name='btn_payment_status_change']").on("click", function() {
+					let payment_id = $(this).data("payment_id"); // 결제번호
+            		let payment_status = $(this).prev("select[name='payment_status']").val(); // 결제상태.
+
+					//console.log("주문번호", ord_code);
+					//console.log("주문상태", ord_status);
+
+					//return;
+            
+					$.ajax({
+						url: '/admin/order/payment_status',
+						data: { payment_id : payment_id, payment_status : payment_status},
+						type: "post",
+						dataType : 'text',
+						success : function(result) {
+							if(result == "success") {
+								alert("결제상태가 변경되었습니다.");
+							}
+						}
+					});
+				});
+	
+			}); // ready event end
+
+			document.getElementById('btn_search_init').addEventListener('click', () => {
+				initializeSearchForm();
+				// alert('Search form has been reset.');
+			});
+	
+		</script>
+
+	</th:block>
+</html>

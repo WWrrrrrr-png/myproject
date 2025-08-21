@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.order.OrderMapper">
+
+	<insert id="order_insert" parameterType="com.ezen.shop.order.OrderVO" useGeneratedKeys="true" keyProperty="ord_code">
+	
+		insert into 
+			order_tbl
+				(mbsp_id, ord_name, ord_addr_zipcode, ord_addr_basic, ord_addr_detail, ord_tel, ord_mail, ord_price)
+			values
+				(#{mbsp_id}, #{ord_name}, #{ord_addr_zipcode}, #{ord_addr_basic}, #{ord_addr_detail}, #{ord_tel}, #{ord_mail}, #{ord_price})
+				
+	</insert>
+	
+	<insert id="order_detail_insert" parameterType="map">
+			
+		insert into 
+			ordetail_tbl
+		select 
+			#{ord_code}, c.pro_num , c.cart_amount , p.pro_price 
+		from 
+			cart_tbl c 
+		inner join 
+			product_tbl p
+		on 
+			c.pro_num = p.pro_num 
+		where 
+			c.mbsp_id = #{mbsp_id}
+		
+	</insert>
+	
+	<select id="getOrderInfoByOrd_code" resultType="HashMap">
+	
+		select 
+			ot.ord_code, pt.pro_name, pt.pro_up_folder, pt.pro_img, ot.dt_price, ot.dt_amount, pt2.payment_status 
+		from 
+			ordetail_tbl ot 
+		inner join 
+			product_tbl pt 
+		on 
+			ot.pro_num = pt.pro_num
+		inner join 
+			payment_tbl pt2
+		on 
+			pt2.ord_code = ot.ord_code
+		where 
+			ot.ord_code = #{ord_code}
+	
+	</select>
+	
+	<select id="getOrderInfoByUser_id" resultType="HashMap" parameterType="map">
+	
+		select 
+			o.ord_code, o.ord_regdate, pt.pro_up_folder, pt.pro_img, pt.pro_name, odt.pro_num, odt.dt_price , odt.dt_amount, payt.payment_status 
+		from 
+			order_tbl o 
+		inner join 
+			ordetail_tbl odt 
+		on 
+			o.ord_code = odt.ord_code 
+		inner join 
+			product_tbl pt 
+		on 
+			odt.pro_num  = pt.pro_num 
+		inner join 
+			payment_tbl payt
+		on 
+			odt.ord_code = payt.ord_code
+		where 
+			o.mbsp_id = #{mbsp_id}
+		order by
+			o.ord_regdate desc
+		limit 
+			#{cri.pageStart}, #{cri.perPageNum}	
+	
+	
+	
+	</select>
+	
+	<select id="getOrderCountByUser_id" resultType="int">
+		
+		select 
+			count(*) 
+		from 
+			order_tbl o 
+		inner join 
+			ordetail_tbl odt 
+		on 
+			o.ord_code = odt.ord_code 
+		inner join 
+			product_tbl pt 
+		on 
+			odt.pro_num  = pt.pro_num 
+		inner join 
+			payment_tbl payt
+		on 
+			odt.ord_code = payt.ord_code
+		where 
+			o.mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<select id="getCategoryNameByPro_num" resultType="String">
+	
+		select 
+			ct.cate_name 
+		from 
+			product_tbl pt 
+		inner join 
+			category_tbl ct 
+		on 
+			pt.cate_code = ct.cate_code
+		where 
+			pt.pro_num = #{pro_num}
+	
+	</select>
+	
+	<select id="review_manage" resultType="HashMap" parameterType="Map">
+	
+		select 
+			o.ord_code, o.ord_regdate,  pt.pro_up_folder, pt.pro_img, pt.pro_name, odt.pro_num, dt.delivery_date, pt.cate_code 
+		from 
+			order_tbl o 
+		inner join 
+			ordetail_tbl odt 
+		on 
+			o.ord_code = odt.ord_code 
+		inner join 
+			product_tbl pt 
+		on 
+			odt.pro_num  = pt.pro_num
+		inner join
+			deliveries_tbl dt
+		on
+			o.ord_code = dt.ord_code
+		where 
+			o.mbsp_id = #{mbsp_id}
+		and 
+			dt.delivery_status = '배송완료'
+		order by
+			o.ord_code desc
+		limit 
+			#{cri.pageStart}, #{cri.perPageNum}	
+		
+	</select>
+	
+	<select id="getReviewCountByUser_id" resultType="int" parameterType="String">
+	
+		select 
+			count(*) 
+		from 
+			order_tbl o 
+		inner join 
+			ordetail_tbl odt 
+		on 
+			o.ord_code = odt.ord_code 
+		inner join 
+			product_tbl pt 
+		on 
+			odt.pro_num  = pt.pro_num
+		inner join
+			deliveries_tbl dt
+		on
+			o.ord_code = dt.ord_code
+		where 
+			o.mbsp_id = #{mbsp_id}
+		and 
+			dt.delivery_status = '배송완료'
+		
+	</select>
+	
+
+</mapper>

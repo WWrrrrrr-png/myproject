@@ -1,0 +1,85 @@
+<!-- home.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<!-- 페이지 전용 CSS -->
+<th:block layout:fragment="css">
+  <!-- Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Animate.css (원하셨던 라이브러리) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+  <!-- 페이지 전용 스타일 -->
+  <link rel="stylesheet" th:href="@{/css/home.css}">
+</th:block>
+
+<!-- 좌측 사이드바 -->
+<th:block layout:fragment="left">
+  <!-- 로그인/배너/카테고리 등 원하는 위젯 배치 -->
+  <div class="card shadow-sm">
+    <div class="card-header fw-bold">카테고리</div>
+    <ul class="list-group list-group-flush small">
+      <!-- 서버에서 categories 리스트를 넘겨준다면 -->
+      <li class="list-group-item" th:each="c : ${categories}">
+        <a th:href="@{/product/list(cat=${c.id})}" th:text="${c.name}">카테고리</a>
+      </li>
+      <!-- 샘플 고정값
+      <li class="list-group-item"><a href="#">의류</a></li>
+      <li class="list-group-item"><a href="#">전자제품</a></li>
+      <li class="list-group-item"><a href="#">생활용품</a></li>
+      -->
+    </ul>
+  </div>
+
+  <div class="card mt-4 border-0">
+    <img class="rounded-3" th:src="@{/img/promo_left.jpg}" alt="프로모션 배너">
+  </div>
+</th:block>
+
+<!-- 우측 메인 콘텐츠 -->
+<th:block layout:fragment="content">
+  <!-- 히어로 섹션 -->
+  <section class="hero p-4 p-md-5 rounded-4 mb-4 animate__animated animate__fadeIn">
+    <h1 class="display-5 fw-bold mb-2">메인페이지</h1>
+    <p class="lead mb-3">지금 가장 인기있는 상품들을 만나보세요.</p>
+    <a class="btn btn-dark btn-lg" th:href="@{/product/list}">전체 상품 보러가기</a>
+  </section>
+
+  <!-- 상품 그리드 -->
+  <section>
+    <h3 class="fw-bold mb-3">🔥 신상품</h3>
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+      <!-- 서버에서 products 넘겨줄 때 -->
+      <div class="col" th:each="p : ${products}">
+        <div class="card product-card h-100 animate__animated animate__fadeInUp">
+          <img class="card-img-top" th:src="${p.thumbUrl}" alt="thumb">
+          <div class="card-body">
+            <h6 class="card-title text-truncate" th:text="${p.name}">상품명</h6>
+            <div class="text-muted small" th:text="${p.brand}">브랜드</div>
+            <div class="fw-bold mt-1" th:text="${#numbers.formatInteger(p.price,3,'COMMA')} + '원'">00,000원</div>
+          </div>
+          <div class="card-footer bg-transparent border-0">
+            <a class="btn btn-outline-dark w-100 btn-sm"
+               th:href="@{/product/detail(id=${p.id})}">자세히 보기</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 데이터 없을 때 샘플 4개 정도 하드코딩해도 OK -->
+    </div>
+  </section>
+</th:block>
+
+<!-- 페이지 전용 스크립트 -->
+<th:block layout:fragment="script2">
+  <script>
+    // 스크롤 시 카드 순차 애니메이션 등 원하는 효과 추가 가능
+  </script>
+</th:block>
+</html>

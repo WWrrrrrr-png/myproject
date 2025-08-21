@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kd.basic.member.MemberMapper">
+
+	<insert id="join" parameterType="com.kd.basic.member.MemberDTO">
+	
+		insert into mbsp_tbl
+			(
+			mbsp_id,
+			mbsp_name,
+			mbsp_email,
+			mbsp_password,
+			mbsp_zipcode,
+			mbsp_addr,
+			mbsp_deaddr,
+			mbsp_phone,
+			mbsp_nick,
+			mbsp_receive
+			)
+		values
+			(
+			#{mbsp_id}, 
+			#{mbsp_name},
+			#{mbsp_email},
+			#{mbsp_password},
+			#{mbsp_zipcode},
+			#{mbsp_addr},
+			#{mbsp_deaddr},
+			#{mbsp_phone},
+			#{mbsp_nick},
+			#{mbsp_receive}
+			)
+	
+	</insert>
+	
+	<select id="idCheck" resultType="String" parameterType="String">
+	
+		select mbsp_id from mbsp_tbl where mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<select id="login" resultType="com.kd.basic.member.MemberDTO" parameterType="String">
+	
+		select 
+			mbsp_id,
+			mbsp_name,
+			mbsp_email,
+			mbsp_password,
+			mbsp_zipcode,
+			mbsp_addr,
+			mbsp_deaddr,
+			mbsp_phone,
+			mbsp_nick 
+		from 
+			mbsp_tbl  
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<select id="modify" resultType="com.kd.basic.member.MemberDTO" parameterType="String">
+	
+		select 
+			mbsp_id,
+			mbsp_name,
+			mbsp_email,
+			mbsp_password,
+			mbsp_zipcode,
+			mbsp_addr,
+			mbsp_deaddr,
+			mbsp_phone,
+			mbsp_nick,
+			mbsp_datesub, 
+			mbsp_updatedate
+		from 
+			mbsp_tbl  
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<update id="modify_save" parameterType="com.kd.basic.member.MemberDTO">
+	
+		update 
+			mbsp_tbl
+		set 
+			mbsp_email = #{mbsp_email}, 
+			mbsp_zipcode = #{mbsp_zipcode}, 
+			mbsp_addr = #{mbsp_addr}, 
+			mbsp_deaddr = #{mbsp_deaddr}, 
+			mbsp_phone = #{mbsp_phone}, 
+    		mbsp_nick = #{mbsp_nick}, 
+    		mbsp_updatedate = now()
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+</mapper>

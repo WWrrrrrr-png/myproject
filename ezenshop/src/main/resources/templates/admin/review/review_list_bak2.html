@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{admin/layouts/ad_layout}">
+
+	<th:block layout:fragment="script">
+		<script>
+			
+			
+			
+		</script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	</th:block>
+
+	<th:block layout:fragment="content">
+	      
+	  <div class="container mt-5">
+		<div class="row">
+			<div class="col">
+				<div class="card card-primary">
+					<div class="card-header">
+					  <h3 class="card-title">상품리뷰목록</h3>
+					</div>
+					<!-- /.card-header -->
+					<!-- list start -->
+					<div class="card-body">
+						<!-- search form start -->
+					<form id="searchForm" action="/admin/review/review_list" method="get">
+					 <div class="row">
+					 	<div class="col-1">검색어</div>	
+						<div class="col-2">												
+							<select name="searchType" class="form-control">
+								<option value="" th:selected="${''} == ${pageMaker.cri.searchType}">전체</option>
+								<option value="n" th:selected="${'n'} == ${pageMaker.cri.searchType}">상품명</option>
+								<option value="c" th:selected="${'c'} == ${pageMaker.cri.searchType}">상품코드</option>
+								<option value="i" th:selected="${'i'} == ${pageMaker.cri.searchType}">작성자ID</option>							
+							</select>								
+						</div>					
+						<div class="col-3">
+							<input type="text" name="keyword" class="form-control" th:value="${pageMaker.cri.keyword}" placeholder="검색어를 입력하세요.">
+						</div>
+						<div class="col-1">평점/내용</div>
+						<div class="col-2">
+							<select class="form-control" name="rev_rate">
+								<option value="">전체평점</option>
+								<option value="5" th:selected="${rev_rate == '5'}">5점</option>
+								<option value="4" th:selected="${rev_rate == '4'}">4점</option>
+								<option value="3" th:selected="${rev_rate == '3'}">3점</option>
+								<option value="2" th:selected="${rev_rate == '2'}">2점</option>
+								<option value="1" th:selected="${rev_rate == '1'}">1점</option>
+							</select>
+						</div>
+						<div class="col-3">
+							<input type="text" name="rev_content" class="form-control" th:value="${rev_content}" placeholder="작성내용..">
+						</div>
+					 </div>											
+				
+				
+				<div class="row mt-3">
+					<div class="col text-center">
+						<button type="submit" class="btn btn-primary">검색</button>
+						<button type="button" class="btn btn-outline-primary" id="btn_search_init">초기화</button>
+					</div>
+				</div>
+			</form>	
+				<div class="row mt-4">
+					<div class="col">
+					 <form name="frm_pro_list" id="frm_pro_list" method="post" action="/admin/product/pro_sel_delete_2">
+						<table class="table table-bordered">
+						  <thead>
+							<tr>
+							  <th style="width: 10%;">번호</th>
+							  <th style="width: 10%;">답변</th>
+							  <th style="width: 20%;">상품정보</th>
+							  <th style="width: 30%;">평점 / 내용</th>
+							  <th style="width: 10%">작성자</th>
+							  <th style="width: 10%">작성일</th>
+							  <th style="width: 10%">관리</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr th:each= "review_info : ${review_list}">
+							    <td>[[${review_info.rev_code}]]</td>
+								<td>
+									<!--
+									<span th:text="${#lists.size(review_info.replies) > 0 ? '[답변완료]' : '[답변대기]'}"></span>
+									-->
+									<div class="alert alert-success" role="alert" th:if="${#lists.size(review_info.replies) > 0}">답변완료</div>
+									<div class="alert alert-danger" role="alert" th:unless="${#lists.size(review_info.replies) > 0}">답변대기</div>
+								</td>
+								<td><!-- vo,dto 를 결과로 사용할 때는 dates, map으로 결과를 사용 할때는  temporals -->
+								<img style="width: 100px;height: 100px;" th:src="${'/admin/review/image_display?dateFolderName=' + review_info.product.pro_up_folder + '&fileName=s_' + review_info.product.pro_img}">
+								[[${review_info.product.pro_num}]]<br>
+								[[${review_info.product.pro_name}]]
+								
+							  </td>
+							  <td>	
+								
+								<span class="star" style="color: red;font-size: large;">[[${review_info.rev_rate}]]</span><br>
+								[[${review_info.rev_content}]]
+								<div th:each= "reply : ${review_info.replies}" style="border: 1px; border-style: dashed; border-radius: 10px; border-color: red;padding: 10px;margin-top: 20px;">
+									<div class="row">
+										<div class="col">관리자</div>	
+										<div class="col"><span th:text="${#temporals.format(reply.reply_date, 'yyyy-MM-dd HH:mm:ss')}"></span></div>	
+									</div>
+									<div class="row">
+										<div class="col"><span th:text="${reply.reply_text}"></span></div>
+									</div>
+									<div class="row">
+										<div class="col">
+											<button type="button" class="btn btn-outline-success" name="btn_reply_edit" th:data-reply_id="${reply.reply_id}">답변수정</button>
+											<button type="button" class="btn btn-outline-danger" name="btn_reply_del" th:data-reply_id="${reply.reply_id}">답변삭제</button>
+										</div>										
+									</div>													
+								</div>		
+							  </td>
+							  <td>[[${review_info.mbsp_id}]]</td>
+							  <td>
+								[[${#temporals.format(review_info.rev_date, 'yyyy-MM-dd HH:mm:ss')}]]
+							  
+							  <td>
+								<button type="button" name="openModalBtn" class="btn btn-block btn-sm btn-outline-primary" th:data-rev_code="${review_info.rev_code}">답변하기</button>								
+							  </td>
+							</tr>
+							
+						  </tbody>
+						</table>
+					</form>
+					<!-- 페이징및검색 파라미터 정보 : 현재 목록상태를 작업(수정,삭제)을 하고 돌아왔을 때 유지. -->
+					<form id="criteriaForm" action="/admin/review/review_list" method="get">
+						<!-- 4개은 페이징,검색파라미터 -->
+						
+						<!-- SearchCriteria -->
+						<input type="hidden" name="page" id="page" th:value="${pageMaker.cri.page}" />
+
+						<input type="hidden" name="perPageNum" id="perPageNum" th:value="${pageMaker.cri.perPageNum}" />
+						<input type="hidden" name="searchType" id="searchType" th:value="${pageMaker.cri.searchType}" />
+						<input type="hidden" name="keyword" id="keyword" th:value="${pageMaker.cri.keyword}" />
+
+						<!-- 평점 -->
+						<input type="hidden" name="rev_rate" id="rev_rate" th:value="${rev_rate}" />
+						<!-- 상품후기 내용 -->
+						<input type="hidden" name="rev_content" id="rev_content" th:value="${rev_content}" />
+					</form>
+				</div>
+				</div>	 
+			</div>
+
+					<div class="card-footer clearfix">
+						<nav aria-label="Page navigation example">
+							<ul class="pagination">
+							<!-- 이전표시여부 Previous  pageMaker.getPrev() -->
+							<th:block th:if="${pageMaker.prev}">
+								<li class="page-item"><a class="page-link movepage" th:href="${pageMaker.startPage - 1}">Previous</a></li>
+							</th:block>
+								<!--  페이지번호 출력.  1  2  3  4  5 -->
+								<th:block th:each="num : ${#numbers.sequence(pageMaker.startPage, pageMaker.endPage)}">
+								<li class="page-item" th:classappend="${pageMaker.cri.page == num ? 'active' : ''}">
+									<a class="page-link movepage" th:href="${num}" th:text="${num}"></a>
+								</li>        
+								</th:block>
+							
+							<!--  다음표시여부 Next -->
+							<th:block th:if="${pageMaker.next}">
+								<li class="page-item"><a class="page-link movepage" th:href="${pageMaker.endPage + 1}">Next</a></li>
+							</th:block>
+							</ul>
+						</nav>
+					</div>
+				 </div>
+			</div>
+		</div>
+	  </div>
+
+	  <!-- 모달 대화상자 -->
+		<div class="modal fade" id="review_reply_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Modal Title</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<!--  <input type="text" name="reply_content" id="reply_content"> -->
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<button type="button" id="btn_reply_save" class="btn btn-primary">상품후기 답변저장</button>
+						<button type="button" id="btn_reply_modify" style="display: none;" class="btn btn-primary">상품후기 답변수정</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	  <script>
+		
+
+	</script>
+	    
+	</th:block>
+
+	<th:block layout:fragment="script2">
+		<script>
+
+			$(document).ready(function() {
+	
+				let criteriaForm = $("#criteriaForm");
+				
+				// 페이지번호를 클릭  [이전] 1 2 3 4 5 [다음]
+				$("a.movepage").on("click", function(e) {
+					e.preventDefault(); // <a>태그의 링크기능을 제거
+
+					// id="page" .  선택한 페이지번호 변경
+					criteriaForm.find("input[name='page']").val($(this).attr("href"));
+					criteriaForm.submit();
+				});
+			});
+
+			/*
+			function displayStars() {
+
+				const spans = document.querySelectorAll("span.star");
+
+				const totalStars = 5;
+				const totalTags = spans.length;
+
+				// Calculate the number of border stars to display
+				//const borderStarsCount = totalStars - totalTags;
+
+				// Process each span and display filled stars (★)
+				spans.forEach(span => {
+					const number = parseInt(span.textContent, 10);
+
+					
+					switch (number) {
+						case 1:
+							span.textContent = "★☆☆☆☆";
+							break;
+						case 2:
+							span.textContent = "★★☆☆☆";
+							break;
+						case 3:
+							span.textContent = "★★★☆☆";
+							break;
+						case 4:
+							span.textContent = "★★★★☆";
+							break;
+						case 5:
+							span.textContent = "★★★★★";
+							break;
+
+					}
+					
+					
+				});
+				
+			}
+			*/
+			function displayStars() {
+				// Get all span elements with the class 'star'
+				const spans = document.querySelectorAll(".star");
+
+				// Total number of stars to display
+				const totalStars = 5;
+
+				// Process each span and display filled stars (★) and bordered stars (☆)
+				spans.forEach(span => {
+					const number = parseInt(span.textContent, 10);
+					if (!isNaN(number) && number > 0 && number <= totalStars) {
+						span.textContent = "★".repeat(number) + "☆".repeat(totalStars - number);
+					} else {
+						span.textContent = "Invalid number"; // Handle invalid cases
+					}
+				});
+			}
+
+			displayStars();
+
+
+			// 초기화 버튼 클릭
+			const resetButton = document.getElementById('btn_search_init');  // $("#btn_search_init")
+			resetButton.addEventListener('click', () => {
+				// resetButton변수가 참조하는 초기화 버튼태그를 감싸는 상위의 form 태그를 참조
+				// const form = document.getElementById('searchForm');
+				const form = resetButton.closest('form'); 
+
+				// Reset all input fields and selects
+				form.reset();
+
+				// form태그 안에서 select 태그를 참조
+				const selects = form.querySelectorAll('select');
+				selects.forEach(select => {
+					select.value = ''; // Reset selects to default
+				});
+				// form.querySelectorAll("선택자")
+				const inputs = form.querySelectorAll('input[type="text"]');
+				inputs.forEach(input => {
+					input.value = ''; // Clear text inputs
+				});
+			});
+
+
+		</script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			// https://www.daleseo.com/js-async-callback/
+			// https://www.daleseo.com/js-async-promise/
+			// https://www.daleseo.com/js-window-fetch/ fetch()함수 설명참조.
+			// https://www.daleseo.com/js-async-async-await/
+
+
+			// const btnReplySave = document.getElementById('btn_reply_save');
+    		// const btnReplyModify = document.getElementById('btn_reply_modify');
+			// DOMContentLoaded : HTML document를 전부 읽고 DOM트리를 완성하는 이벤트로 읽고나면 아래 코드가 동작된다.
+			document.addEventListener("DOMContentLoaded", function () {
+				// 답변달기 태그들.  <button type="button" name="openModalBtn" th:data-rev_code="${review_info.rev_code}">답변하기</button>
+				const openModalButtons = document.querySelectorAll("button[name='openModalBtn']");
+		
+				// 답변달기 태그들을 반복적으로 사용하여 click 이벤트 설정
+				openModalButtons.forEach(button => {
+					button.addEventListener("click", function () {
+						// 클릭한 답변달기 버튼의 상품후기코드 값 읽기
+						const revCode = this.getAttribute("data-rev_code");
+		
+						// AJAX 요청
+						fetch(`/admin/review/review_info/${revCode}`, {
+							method: "GET",
+							headers: {
+								"Content-Type": "application/json"
+							}
+						})
+						.then(response => {
+							if (!response.ok) {
+								throw new Error("네트웍 응답 오류");
+							}
+							return response.json(); // 응답된 결과를 json 으로 변환
+						})
+						.then(data => {
+							// 스프링부트에서 상품후기정보를 가져와 모달 대화상자에 작업
+							// 모달대화상자의 태그를 참조
+							const modalTitle = document.querySelector("#exampleModalLabel");
+
+							const modalBody = document.querySelector(".modal-body");
+
+							// 상품후기 답변저장 버튼
+							const btn_reply_save = document.querySelector("#btn_reply_save");
+							// 상품후기 답변수정 버튼
+							const btn_reply_modify = document.querySelector("#btn_reply_modify");
+		
+							// 모달대화상자에 상품후기 정보를 동적으로 출력하는 작업
+							modalTitle.textContent = `상품후기코드: ${revCode}`;
+							modalBody.innerHTML = `
+								<p><strong>상품후기내용:</strong> ${data.rev_content}</p>
+								<p><strong>평점:</strong> ${data.rev_rate}</p>
+								<p><strong>작성일</strong> ${data.rev_date}</p>
+								상품후기 답변 :<input type="text" name="reply_content" id="reply_content">
+							`;
+		
+							// 1)상품후기 답변저장 클릭
+							btn_reply_save.onclick = function () {
+								
+								// 상품후기 답변내용을 읽기.
+								const replyContent = document.querySelector("#reply_content").value.trim();
+
+								// 상품후기 답변내용이 비워져있으면
+								if (!replyContent) {
+									alert("상품후기 답변내용을 입력하세요");
+									return;
+                    			}
+
+								// 상품후기 답변내용을 저장하기위한 구문.
+								fetch(`/admin/review/reply_insert`, {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json"
+									},
+									body: JSON.stringify({
+										reply_text: replyContent,  // 상품후기 답변내용
+										rev_code : revCode   // 상품후기 코드(부모글 번호)
+									})
+								})
+								.then(response => {
+									if (!response.ok) {
+										throw new Error("상품후기 답변저장 에러발생.");
+									}
+									return response.text();
+								})
+								.then(data => {
+									if(data == "success") {
+									alert("상품후기 답변저장 성공.");					
+
+									// 닫기 클릭시 모달대화상자 숨기기.
+									const modalElement = document.querySelector("#review_reply_modal");
+									const modalInstance = bootstrap.Modal.getInstance(modalElement);
+									modalInstance.hide();
+
+									criteriaForm.submit();
+									}
+								})
+								.catch(error => {
+									console.error("상품후기 답변저장시 에러:", error);
+									alert("상품후기 답변저장시 에러발생.");
+								});
+							};
+
+							// 2)상품후기 답변수정클릭
+							btn_reply_modify.onclick = function () {
+								
+								console.log("상품후기 답변수정클릭");
+								
+								// 상품후기 답변내용을 읽기.
+								const replyContent = document.querySelector("#reply_content").value.trim();
+
+								// 상품후기 답변내용이 비워져있으면
+								if (!replyContent) {
+									alert("상품후기 답변내용을 입력하세요");
+									return;
+                    			}
+
+								// 상품후기 답변내용을 저장하기위한 구문.
+								fetch(`/admin/review/reply_insert`, {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json"
+									},
+									body: JSON.stringify({
+										reply_text: replyContent,  // 상품후기 답변내용
+										rev_code : revCode   // 상품후기 코드(부모글 번호)
+									})
+								})
+								.then(response => {
+									if (!response.ok) {
+										throw new Error("상품후기 답변저장 에러발생.");
+									}
+									return response.text();
+								})
+								.then(data => {
+									if(data == "success") {
+									alert("상품후기 답변저장 성공.");					
+
+									// 닫기 클릭시 모달대화상자 숨기기.
+									const modalElement = document.querySelector("#review_reply_modal");
+									const modalInstance = bootstrap.Modal.getInstance(modalElement);
+									modalInstance.hide();
+
+									criteriaForm.submit();
+									}
+								})
+								.catch(error => {
+									console.error("상품후기 답변저장시 에러:", error);
+									alert("상품후기 답변저장시 에러발생.");
+								});
+							};
+		
+							
+							// 화면표시.
+							
+							btn_reply_save.style.display = 'inline-block'; // 상품후기 답변저장 버튼 표시
+							btn_reply_modify.style.display = 'none';  // 상품후기 답변수정 버튼 표시 안함.
+							// Bootstrap's JavaScript API를 이용하여 모달대화상자 화면에 표시
+							const modalElement = document.querySelector("#review_reply_modal");
+							const modalInstance = new bootstrap.Modal(modalElement);
+							modalInstance.show();
+						})
+						.catch(error => {
+							console.error("There was a problem with the fetch operation:", error);
+							alert("Failed to load review details. Please try again.");
+						});
+					});
+				});
+			});
+
+			// 답글수정, 삭제버튼 클릭 이벤트
+			document.addEventListener('DOMContentLoaded', function () {
+				const btnReplySave = document.getElementById('btn_reply_save');
+    			const btnReplyModify = document.getElementById('btn_reply_modify');
+				
+				// 이벤트 위임을 위해 공통 부모 요소에 이벤트를 등록(동적으로 생성한 태그 이벤트 작업)
+				const container = document.body;
+
+				// 답변 수정 버튼 클릭 이벤트.  event : 클릭한 태그를 가리키는 객체.				
+				container.addEventListener('click', function (event) {
+					
+					//console.log("body 테스트");
+					
+					if (event.target.name === 'btn_reply_edit') {
+						const replyId = event.target.getAttribute('data-reply_id');
+						console.log(`답변 수정 버튼 클릭됨. reply_id: ${replyId}`);
+						// 수정 로직 추가
+						editReply(replyId);
+						
+					}
+					
+				});
+				
+				
+				// 답변 삭제 버튼 클릭 이벤트
+				container.addEventListener('click', function (event) {
+					if (event.target.name === 'btn_reply_del') {
+						const replyId = event.target.getAttribute('data-reply_id');
+						console.log(`답변 삭제 버튼 클릭됨. reply_id: ${replyId}`);
+						// 삭제 로직 추가
+						deleteReply(replyId);
+						// criteriaForm.submit();
+					}
+				});
+
+				// 답변 수정 함수
+				function editReply(reply_id) {
+					// 수정 팝업 또는 입력 폼 로직 실행
+					alert(`답변 수정 처리: reply_id=${reply_id}`);
+					// 추가로 AJAX 요청 등을 통해 서버와 통신 가능
+					// 예:
+					fetch(`/admin/review/reply_info/${reply_id}`, { method: 'GET' })
+					    .then(response => response.json())
+					    .then(data => {
+					        console.log(data);
+							let reply_id = data.reply_id;
+
+							// 답변 수정정보.
+							// 스프링부트에서 상품후기 답변정보를 가져와 모달 대화상자에 작업
+							// 모달대화상자의 태그를 참조
+							const modalTitle = document.querySelector("#exampleModalLabel");
+
+							const modalBody = document.querySelector(".modal-body");
+
+							// 상품후기 답변저장 버튼
+							const btn_reply_save = document.querySelector("#btn_reply_save");
+							// 상품후기 답변수정 버튼
+							const btn_reply_modify = document.querySelector("#btn_reply_modify");
+		
+							// 모달대화상자에 상품후기 정보를 동적으로 출력하는 작업
+							modalTitle.textContent = `상품후기 답변코드: ${data.reply_id}`;
+							modalBody.innerHTML = `
+								상품후기 답변 :<input type="text" name="reply_content" id="reply_content2" value="${data.reply_text}">
+							`;
+
+							
+							// 상품후기 답변 수정저장 클릭 이벤트
+							btn_reply_modify.onclick = function() {
+								console.log("답변수정 하기...", reply_id);
+
+								// 상품후기 답변내용을 읽기.
+								const replyContent = document.querySelector("#reply_content2").value.trim();
+
+								console.log("답변수정내용", replyContent);
+
+								// 상품후기 답변내용이 비워져있으면
+								if (!replyContent) {
+									alert("상품후기 답변 수정내용을 입력하세요");
+									return;
+                    			}
+
+								const data = {
+									reply_text: replyContent,  // 상품후기 답변내용
+									reply_id  : reply_id   // 상품후기 답변번호
+								};
+
+								// 상품후기 답변내용을 저장하기위한 구문.
+								fetch(`/admin/review/reply_modify`, {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json"
+									},
+									body: 
+										JSON.stringify({
+										reply_text: replyContent,  // 상품후기 답변내용
+										reply_id  : reply_id   // 상품후기 답변번호
+									})
+									
+								})
+								.then(response => {
+									if (!response.ok) {
+										throw new Error("상품후기 답변수정저장 에러발생.");
+									}
+									return response.text();
+								})
+								.then(data => {
+									if(data == "success") {
+									alert("상품후기 답변수정 성공." + reply_id);					
+
+									// 닫기 클릭시 모달대화상자 숨기기.
+									const modalElement = document.querySelector("#review_reply_modal");
+									const modalInstance = bootstrap.Modal.getInstance(modalElement);
+									modalInstance.hide();
+
+									// 폼태그에 있는 현재 페이지정보, 검색정보를 전송.
+									criteriaForm.submit();
+									}
+								})
+								.catch(error => {
+									console.error("상품후기 답변 수정시 에러:", error);
+									alert("상품후기 답변 수정시 에러발생.");
+								});
+							};
+					    });
+
+					// 수정할 내용 불러오기 작업
+
+					// 화면표시.
+					btnReplySave.style.display = 'none';
+					btnReplyModify.style.display = 'inline-block';
+
+					const modalElement = document.querySelector("#review_reply_modal");
+					const modalInstance = new bootstrap.Modal(modalElement);
+					modalInstance.show();
+
+					// 
+				}
+
+				// 답변 삭제 함수
+				function deleteReply(reply_id) {
+					const confirmDelete = confirm(`정말로 답변을 삭제하시겠습니까? reply_id=${reply_id}`);
+					if(!confirmDelete) return false;
+					if (confirmDelete) {
+						alert(`답변 삭제 처리: reply_id=${reply_id}`);
+						// 추가로 AJAX 요청 등을 통해 서버와 통신 가능
+						// 예:
+						fetch(`/admin/review/reply_delete/${reply_id}`, { method: 'DELETE' })
+						    .then(response => response.text())
+						    .then(data => {
+						        console.log(data);
+								if(data == "success") {
+									alert("답변삭제 성공");
+									criteriaForm.submit();
+								}
+						    });
+					}
+				}
+			});
+
+		</script>
+	</th:block>
+</html>

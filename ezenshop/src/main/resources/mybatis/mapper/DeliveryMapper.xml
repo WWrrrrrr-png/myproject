@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.delivery.DeliveryMapper">
+
+	<insert id="delivery_insert" parameterType="com.ezen.shop.delivery.DeliveryVO">
+	
+		insert into 
+			delivery_tbl(ord_code, shipping_zipcode, shipping_addr, shipping_deaddr)
+		values
+			(#{ord_code}, #{shipping_zipcode}, #{shipping_addr}, #{shipping_deaddr})
+	
+	</insert>
+
+</mapper>

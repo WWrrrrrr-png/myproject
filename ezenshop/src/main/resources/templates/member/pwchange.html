@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/layout}">
+<th:block layout:fragment="content">
+	<div class="row mt-5">
+		<div class="col-3">
+			
+			<th:block th:replace="~{member/mypage_menu::menu}"></th:block>
+			
+		</div>
+		<div class="col-9">
+			<form method="post" action="/member/pwchange">
+			  <div class="mb-3">
+			    <label for="cur_pw" class="form-label">기존비밀번호</label>
+			    <input type="password" class="form-control" id="cur_pw" name="cur_pw">
+			  </div>
+			  <div class="mb-3">
+			    <label for="new_pw" class="form-label">신규비밀번호</label>
+			    <input type="password" class="form-control" id="new_pw" name="new_pw">
+			  </div>
+			  <div class="mb-3">
+			    <label for="confirm_pw" class="form-label">비밀번호확인</label>
+			    <input type="password" class="form-control" id="confirm_pw" name="confirm_pw">
+			  </div>
+
+			  <button type="submit" class="btn btn-primary">비밀번호 변경하기</button>
+			  <button type="button" class="btn btn-primary" id="btn_pwchange">비밀번호 변경하기(ajax)</button>
+			</form>
+		</div>
+	</div>
+	
+	
+	
+</th:block>
+<th:block layout:fragment="script2">
+<script th:inline="javascript">
+	let msg = [[${msg}]]; // msg는 스프링에서 선언한 이름
+
+	if(msg == "fail") {
+		alert("현재 비밀번호를 확인바랍니다.");
+	}
+
+	$(document).ready(function() {
+		
+		// <a href="" id="pwchange2" ></a>
+		$("#pwchange2").on("click", function(e) {
+
+			e.preventDefault(); // <a>태그의 링크기능을 제거.
+			$.ajax({
+				url : '/userinfo/pwchange2',
+				type: 'get',
+				beforeSend: function(xhr) { 
+					xhr.setRequestHeader("AJAX", "true"); // 스프링의 인터셉터 클래스에서 요청이 ajax인지 구분목적.
+				},
+				dataType: 'text',
+				success : function(result) {
+					if(result == "success") {
+						alert("비밀번호 변경2 클릭되었습니다.");
+					}
+				},
+				error : function(xhr) {  // 스프링의 인터셉터 클래스에서 response.sendError(400) 코드가 실행이되고 제어 넘어옴.
+					alert(xhr.status);
+					if(xhr.status == 400) {
+						alert("인증된 사용자만 가능합니다.");
+						location.href = "/userinfo/login";
+					}
+				}
+			});
+		});
+		
+		
+		// 비밀번호 변경하기(로그인상태) . id="btn_pwchange"
+		$("#btn_pwchange").on("click", function() {
+
+			$.ajax({
+				url : '/userinfo/pwchange2',
+				type: 'post',
+				data : {cur_pw : $("#cur_pw").val() , new_pw : $("#new_pw").val()}, // 자바스크립트 Object문법
+				dataType: 'text',
+				success : function(result) {
+					if(result == "success") {
+						alert("비밀번호가 변경되었습니다.");
+					}else if(result == "fail") {
+						alert("현재 비밀번호를 확인하세요.");
+					}
+					$("#cur_pw").val(""); // 현재비번 지우기
+					$("#new_pw").val(""); // 신규비번 지우기
+				}
+			});
+		});
+
+	});
+</script>
+</th:block>
+</html>

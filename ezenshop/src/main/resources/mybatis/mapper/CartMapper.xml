@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.shop.cart.CartMapper">
+
+	<insert id="cart_add" parameterType="com.ezen.shop.cart.CartVO">
+		<!-- 
+		insert into 
+			cart_tbl(pro_num,mbsp_id,cart_amount) 
+		values(#{pro_num},#{mbsp_id},#{cart_amount})
+		 -->
+		<!-- 동일한 사용와상품코드가 장바구니테이블에 존재하지않으면 데이터 insert, 존재하면 데이터 수량변경(update) -->
+		insert into 
+			cart_tbl(pro_num, mbsp_id, cart_amount)
+		values
+			(#{pro_num}, #{mbsp_id}, #{cart_amount})
+		on duplicate key 
+			update cart_amount = cart_amount + #{cart_amount} 
+	</insert>
+
+	<select id="getCartDetailsByUserId" resultType="HashMap">
+	
+		select 
+			p.pro_num, p.pro_name, p.pro_price, p.pro_up_folder, p.pro_img, c.cart_amount
+		from 
+			cart_tbl c 
+		inner join 
+			product_tbl p
+		on 
+			c.pro_num = p.pro_num
+		where 
+			c.mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<select id="getCartTotalPriceByUserId" resultType="int">
+	
+		select 
+			sum(p.pro_price * c.cart_amount) as total_price
+		from 
+			cart_tbl c 
+		inner join 
+			product_tbl p
+		on 
+			c.pro_num = p.pro_num
+		where 
+			c.mbsp_id = #{mbsp_id}
+	
+	</select>
+	
+	<delete id="cart_empty" parameterType="String">
+	
+		delete from 
+			cart_tbl
+		where 
+			mbsp_id = #{mbsp_id}
+	
+	</delete>
+	
+	<select id="cart_list" resultType="HashMap" parameterType="String">
+	
+		select 
+			c.pro_num, c.mbsp_id, p.pro_name, p.pro_up_folder, p.pro_img, p.pro_price, c.cart_amount, c.cart_amount * p.pro_price as unitprice
+		from 
+			cart_tbl c 
+		inner join 
+			product_tbl p
+		on 
+			c.pro_num = p.pro_num 
+		where 
+			c.mbsp_id = #{mbspId}
+	
+	</select>
+	
+	<update id="cart_change" parameterType="com.ezen.shop.cart.CartVO">
+	
+		update
+			cart_tbl
+		set
+			cart_amount = #{cart_amount}
+		where
+			pro_num = #{pro_num}
+		and
+			mbsp_id = #{mbsp_id}
+	
+	</update>
+	
+	<!-- delete from cart_tbl where pro_num in (12, 13) and mbsp_id = 'user01'  -->
+	<delete id="cart_sel_delete">
+ 
+	 	delete from 
+	 			cart_tbl
+	 		where 
+	 			pro_num in
+	 	
+	 	<foreach collection="pro_num_arr" item="item" open="("  separator="," close=")" >
+	 	
+	 		#{item}
+	 		
+	 	</foreach>
+	 	
+	 	and 
+	 		mbsp_id = #{mbsp_id}
+ </delete>
+
+
+</mapper>

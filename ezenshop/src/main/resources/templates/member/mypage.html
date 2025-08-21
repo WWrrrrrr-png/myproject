@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/layout}">
+<th:block layout:fragment="content">
+	<div class="row">
+		<div class="col-3">
+			<th:block th:replace="~{member/mypage_menu::menu}"></th:block>
+		</div>
+		<div class="col-9">
+			내용.
+		</div>
+	</div>
+	
+	
+	
+</th:block>
+</html>

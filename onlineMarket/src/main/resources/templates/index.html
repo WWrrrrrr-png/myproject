@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/layout}">
+
+	 <th:block layout:fragment="script1">
+	 	<script th:inline="javascript">
+	 		let status = [[${status}]]; // "modify"
+	 		if(status == "modify") {
+	 			alert("회원정보가 수정됨");
+	 		}
+	 	
+	 	</script>
+	 
+	 </th:block>
+
+	<th:block layout:fragment="content">
+	
+		<h3>메인페이지</h3>
+	
+	</th:block>
+
+
+
+</html>
